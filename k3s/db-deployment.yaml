@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lexo-db-deployment
+  namespace: lexo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lexo-db
+  template:
+    metadata:
+      labels:
+        app: lexo-db
+    spec:
+      containers:
+        - name: lexo-db
+          image: postgres:16.4-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-db-secrets
+                  key: db-name
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-db-secrets
+                  key: db-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-db-secrets
+                  key: db-password
+          volumeMounts:
+            - name: lexo-db-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: lexo-db-data
+          persistentVolumeClaim:
+            claimName: lexo-db-pvc

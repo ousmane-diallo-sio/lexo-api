@@ -1,0 +1,58 @@
+{
+  "name": "lexo-api",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "watchexec --restart --watch src --exts ts,json --debounce 500 -- 'bun run build && bun run start'",
+    "build": "bun build src/index.ts --outdir ./dist --target=bun -e oracledb -e mysql -e better-sqlite3 -e mysql2 -e pg-query-stream -e tedious -e sqlite3 -e libsql -e mariadb",
+    "docker:dev": "docker compose -f docker-compose-dev.yaml up",
+    "schema:create:dump": "bun run src/write-command.ts schema:create:dump",
+    "schema:create:run": "bun run src/write-command.ts schema:create:run",
+    "schema:update:dump": "bun run src/write-command.ts schema:update:dump",
+    "schema:update:run": "bun run src/write-command.ts schema:update:run",
+    "schema:drop:dump": "bun run src/write-command.ts schema:drop:dump",
+    "schema:drop:run": "bun run src/write-command.ts schema:drop:run",
+    "schema:seed": "bun run src/write-command.ts schema:seed --class=DatabaseSeeder",
+    "init:dump": "bun run schema:create:dump",
+    "init": "bun run schema:create:run && bun run schema:seed",
+    "debug:env": "echo 'All env variables:' && env | grep MIKRO_ORM"
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "^0.22.0",
+    "@mikro-orm/cli": "^6.4.15",
+    "@mikro-orm/core": "^6.4.15",
+    "@mikro-orm/migrations": "^6.4.15",
+    "@mikro-orm/postgresql": "^6.4.15",
+    "@mikro-orm/reflection": "^6.4.15",
+    "@mikro-orm/seeder": "^6.4.15",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
+    "express": "^4.18.2",
+    "express-jwt": "^8.4.1",
+    "firebase-admin": "^13.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^10.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/express-jwt": "^7.4.2",
+    "@types/uuid": "^10.0.0",
+    "ajv": "^8.17.1",
+    "ajv-draft-04": "^1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "mikro-orm": {
+    "configPaths": [
+      "./dist/db/mikro-orm.config.js",
+      "./src/db/mikro-orm.config.ts"
+    ],
+    "alwaysAllowTs": true
+  }
+}

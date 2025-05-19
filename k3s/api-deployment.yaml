@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lexo-api-deployment
+  namespace: lexo-api
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: lexo-api
+  template:
+    metadata:
+      labels:
+        app: lexo-api
+    spec:
+      containers:
+        - name: lexo-api
+          image: lemonware/lexo-api:main
+          ports:
+            - containerPort: 3005
+          env:
+            - name: MIKRO_ORM_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-db-secrets
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-db-secrets
+                  key: db-password
+            - name: MIKRO_ORM_DB_NAME
+              value: lexo-db
+            - name: MIKRO_ORM_DB_PORT
+              value: "5432"
+            - name: DB_HOST
+              value: lexo-db-service
+            - name: DOCKERHUB_WEBHOOK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-secrets
+                  key: dockerhub-webhook-token
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3005
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: lexo-api-registry-credentials
