@@ -12,6 +12,7 @@ const EnvConfig = {
   DOCKERHUB_CONTAINER_NAME: process.env.DOCKERHUB_CONTAINER_NAME ?? "missing dockerhub container name",
   DOCKERHUB_WEBHOOK_TOKEN: process.env.DOCKERHUB_WEBHOOK_TOKEN ?? "missing dockerhub webhook token",
   API_BASE_URL: process.env.API_BASE_URL ?? "missing api base url",
+  ADMIN_CREATION_KEY: process.env.ADMIN_CREATION_KEY ?? "missing admin creation key",
 }
 
 export default EnvConfig;

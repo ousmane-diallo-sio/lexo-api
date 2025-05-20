@@ -3,12 +3,12 @@ import { omit } from '../../lib/utils/index.js';
 import { User } from './Entity.js';
 import { FilterQuery, LoadStrategy, wrap } from '@mikro-orm/core';
 import { NotFoundError } from '../../exceptions/LexoError.js';
-import { CreateUserDTO, CreateUserGoogleDTO, UpdateUserDTO } from './index.js';
+import { CreateAdminUserDTO, CreateUserDTO, CreateUserGoogleDTO, UpdateUserDTO } from './index.js';
 import orm from '../../db/orm.js';
 
 class UserRepository {
 
-  async create(data: CreateUserDTO | CreateUserGoogleDTO) {
+  async create(data: CreateUserDTO | CreateUserGoogleDTO | CreateAdminUserDTO) {
     const em = orm.getEmFork();
 
     const user = new User(data);

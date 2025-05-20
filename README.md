@@ -38,4 +38,5 @@ DOCKERHUB_TOKEN=dockerhubtoken
 DOCKERHUB_CONTAINER_NAME=lexo-api
 DOCKERHUB_WEBHOOK_TOKEN=dockerhubwebhooktoken
 API_BASE_URL=http://localhost:3005
+ADMIN_CREATION_KEY=admincreationkey
 ```

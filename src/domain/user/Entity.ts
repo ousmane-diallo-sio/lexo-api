@@ -2,8 +2,7 @@ import { BeforeCreate, BeforeUpdate, BeforeUpsert, Cascade, Collection, Entity, 
 import jwt from "jsonwebtoken";
 import EnvConfig from '../../lib/config/EnvConfig.js';
 import crypto from "crypto";
-import type { CreateUserGoogleDTO, CreateUserDTO } from './index.d.ts';
-import { orm } from '../../index.js';
+import type { CreateUserGoogleDTO, CreateUserDTO, CreateAdminUserDTO } from './index.d.ts';
 import { BaseEntityWithUUID } from '../../db/BaseEntityWithUUID.js';
 
 @Entity()
@@ -24,6 +23,9 @@ export class User extends BaseEntityWithUUID {
   @Property()
   emailVerified: boolean = false;
 
+  @Property({ default: false })
+  isAdmin: boolean = false;
+
   @Property({ hidden: true, lazy: true })
   password?: string;
 
@@ -31,7 +33,7 @@ export class User extends BaseEntityWithUUID {
   salt?: string
 
   // Remember, the constructor is never used by MikroORM when creating managed entities
-  constructor(dto: CreateUserDTO | CreateUserGoogleDTO) {
+  constructor(dto: CreateUserDTO | CreateUserGoogleDTO | CreateAdminUserDTO) {
     super();
     this.email = dto.email;
     this.username = dto.username;
@@ -41,6 +43,13 @@ export class User extends BaseEntityWithUUID {
     }
     if ('googleId' in dto && dto.googleId) {
       this.googleId = dto.googleId;
+    }
+    if ('adminCreationKey' in dto && dto.adminCreationKey) {
+      if (this.checkAdminCreationKey(dto.adminCreationKey, dto.email)) {
+        if ('isAdmin' in dto && dto.isAdmin) {
+          this.isAdmin = dto.isAdmin;
+        }
+      }
     }
   }
 
@@ -54,6 +63,12 @@ export class User extends BaseEntityWithUUID {
       this.password = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
       this.salt = salt;
     }
+  }
+
+  checkAdminCreationKey(adminCreationKey: string, email: string) {
+    if (adminCreationKey === EnvConfig.ADMIN_CREATION_KEY) return true;
+    console.warn(`Attempted to create admin user with invalid key: ${adminCreationKey}, email: ${email}`);
+    throw new Error("Invalid admin creation key");
   }
 
   generateToken() {

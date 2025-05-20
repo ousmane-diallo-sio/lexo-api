@@ -54,7 +54,7 @@ export async function executeMikroORMCommand(command: MikroORMCommand, args: str
       case 'schema:seed':
         const seederClass = args.find(arg => arg.startsWith('--class='))?.split('=')[1];
         if (seederClass === 'DatabaseSeeder') {
-          await orm.getSeeder().seed(DatabaseSeeder);
+          await orm.get().getSeeder().seed(DatabaseSeeder);
         }
         break;
     }

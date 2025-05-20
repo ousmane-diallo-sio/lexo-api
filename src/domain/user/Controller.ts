@@ -4,7 +4,7 @@ import { formatResponse, ServerCode } from "../../lib/utils/response.js";
 import { jwt } from "../../lib/middlewares.js";
 import { z } from "zod";
 import { omit } from "../../lib/utils/index.js";
-import { CreateUserGoogleSchema, CreateUserSchema, UpdateUserSchema, UserLoginSchema } from "./ZodSchema.js";
+import { CreateAdminUserSchema, CreateUserGoogleSchema, CreateUserSchema, UpdateUserSchema, UserLoginSchema } from "./ZodSchema.js";
 import { LexoError } from "../../exceptions/LexoError.js";
 
 const userController = Router();
@@ -35,7 +35,12 @@ const getAll: RequestHandler = async (req, res) => {
 
 const createOne: RequestHandler = async (req, res) => {
   const isGoogleSignup = req.path.includes("/google");
-  const validation = isGoogleSignup ? CreateUserGoogleSchema.safeParse(req.body) : CreateUserSchema.safeParse(req.body);
+  const isAdminCreation = req.path.includes("/admin");
+  const validation = isGoogleSignup 
+    ? CreateUserGoogleSchema.safeParse(req.body) 
+    : isAdminCreation
+      ? CreateAdminUserSchema.safeParse(req.body)
+      : CreateUserSchema.safeParse(req.body);
 
   if (!validation.success) {
     return formatResponse(res, {
@@ -140,6 +145,7 @@ const deleteOne: RequestHandler = async (req, res) => {
 
 userController.post("/", createOne);
 userController.post("/google", createOne);
+userController.post("/admin", createOne);
 userController.patch("/:id", jwt, updateOne);
 userController.get("/:id", jwt, getOneById);
 userController.post("/login", login);
