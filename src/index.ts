@@ -10,6 +10,7 @@ import { MikroORM } from '@mikro-orm/postgresql';
 import path from 'path';
 import { watchCommandFile } from './command-watcher.js';
 import orm from './db/orm.js';
+import cors from 'cors';
 
 console.log('📀 Server starting');
 const app = express();
@@ -24,6 +25,7 @@ try {
   process.exit(1);
 }
 
+app.use(cors())
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(requestLogger);
 

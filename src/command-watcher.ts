@@ -5,9 +5,6 @@ import path from 'path';
 
 const COMMAND_FILE = path.join(process.cwd(), 'src', 'command.txt');
 const MAX_HISTORY = 50;
-let lastCommandLine = '';
-let commandHistory: string[] = [];
-let isWatching = false;
 
 const DEFAULT_CONTENT = `# This file is watched for changes
 # To execute a command, write it here and save the file
@@ -16,6 +13,13 @@ const DEFAULT_CONTENT = `# This file is watched for changes
 # Command History:
 `;
 
+let commandHistory: string[] = [];
+const executedCommands = new Set<string>();
+const commandQueue: string[] = [];
+
+let isProcessing = false;
+let isWatching = false;
+
 async function loadExistingHistory() {
   try {
     const content = await readFile(COMMAND_FILE, 'utf8');
@@ -23,7 +27,7 @@ async function loadExistingHistory() {
     const historyStartIndex = lines.findIndex(line => line.includes('Command History:')) + 1;
     const historyLines = lines.slice(historyStartIndex).filter(line => line.trim().startsWith('#'));
     commandHistory = historyLines.slice(0, MAX_HISTORY);
-  } catch (error) {
+  } catch {
     console.log('No existing history found, starting fresh');
   }
 }
@@ -46,37 +50,84 @@ async function updateCommandHistory(command: string) {
   }
 }
 
+async function saveHistoryToFile() {
+  const updatedContent = `${DEFAULT_CONTENT}\n${commandHistory.join('\n')}`;
+  await writeFile(COMMAND_FILE, updatedContent, 'utf8');
+}
+
+async function enqueueCommandsFromFile() {
+  try {
+    const content = await readFile(COMMAND_FILE, 'utf8');
+    const lines = content.split('\n').map(line => line.trim());
+
+    // Extract commands (non-empty, not starting with #)
+    const newCommands = lines.filter(line => line && !line.startsWith('#'));
+
+    for (const cmd of newCommands) {
+      if (!executedCommands.has(cmd) && !commandQueue.includes(cmd)) {
+        commandQueue.push(cmd);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to read command file for queueing:', error);
+  }
+}
+
+async function processQueue() {
+  if (isProcessing) return;
+  isProcessing = true;
+
+  while (commandQueue.length > 0) {
+    const commandLine = commandQueue.shift()!;
+    if (executedCommands.has(commandLine)) {
+      // Already executed, skip
+      continue;
+    }
+
+    try {
+      console.log(`Executing command: ${commandLine}`);
+      const [command, ...args] = commandLine.split(' ');
+
+      if (isMikroORMCommand(command)) {
+        await executeMikroORMCommand(command, args);
+      } else {
+        console.warn(`Unknown command: ${commandLine}`);
+      }
+
+      await updateCommandHistory(commandLine);
+      executedCommands.add(commandLine);
+
+      if (executedCommands.size > 100) {
+        // Keep last 50
+        const executedArray = Array.from(executedCommands);
+        executedCommands.clear();
+        for (const c of executedArray.slice(-50)) executedCommands.add(c);
+      }
+
+      await saveHistoryToFile();
+
+    } catch (error) {
+      console.error(`Error executing command "${commandLine}":`, error);
+    }
+  }
+
+  isProcessing = false;
+}
+
 export async function watchCommandFile() {
   if (isWatching) return;
+  isWatching = true;
 
   await initializeCommandFile();
+  await enqueueCommandsFromFile();
+
+  // Process any existing commands on start
+  processQueue();
+
   watch(COMMAND_FILE, async (eventType) => {
     if (eventType === 'change') {
-      try {
-        const content = await readFile(COMMAND_FILE, 'utf8');
-        const lines = content.split('\n').map(line => line.trim());
-        const commandLine = lines.find(line => line && !line.startsWith('#'));
-
-        if (commandLine) {
-          lastCommandLine = commandLine;
-          const [command, ...args] = commandLine.split(' ');
-
-          // Execute command if valid
-          if (isMikroORMCommand(command)) {
-            await executeMikroORMCommand(command, args);
-          }
-
-          await updateCommandHistory(commandLine);
-
-          // Clear first line and update file with new content
-          const newContent = content.split('\n');
-          newContent[0] = ''; // Clear first line
-          const updatedContent = `${DEFAULT_CONTENT}\n${commandHistory.join('\n')}`;
-          await writeFile(COMMAND_FILE, updatedContent, 'utf8');
-        }
-      } catch (error) {
-        console.error(`Error reading command file: ${error}`);
-      }
+      await enqueueCommandsFromFile();
+      processQueue();
     }
   });
 
