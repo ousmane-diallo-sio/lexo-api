@@ -5,7 +5,9 @@ import { jwt } from "../../lib/middlewares.js";
 import { z } from "zod";
 import { omit } from "../../lib/utils/index.js";
 import { CreateAdminUserSchema, CreateUserGoogleSchema, CreateUserSchema, UpdateUserSchema, UserLoginSchema } from "./ZodSchema.js";
-import { LexoError } from "../../exceptions/LexoError.js";
+import { LexoError, ValidationError } from "../../exceptions/LexoError.js";
+import { User } from "./Entity.js";
+import orm from "../../db/orm.js";
 
 const userController = Router();
 
@@ -131,11 +133,25 @@ const login: RequestHandler = async (req, res) => {
 };
 
 const deleteOne: RequestHandler = async (req, res) => {
+  console.debug("Delete user request received", req.params);
   const reqUserId = req.auth!.id;
+  const reqParams = z.object({ id: z.string().optional() }).safeParse(req.params);
+
+  if (!reqParams.success) {
+    return ValidationError.sendFormatedResponse(res, reqParams.error, { fallBackErrorMsg: 'Invalid request parameters' });
+  }
 
   try {
-    await userRepository.delete(reqUserId);
-    return formatResponse(res, { status: 200, messages: [{ type: "success", message: "Compte supprimé" }] });
+    const admin = await orm.getEmFork().findOne(User, { id: reqUserId, isAdmin: true });
+    if (!admin && reqParams.data.id && reqParams.data.id !== reqUserId) {
+      return formatResponse(res, {
+        status: 403,
+        messages: [{ type: "error", message: "You are not authorized to delete this user" }],
+      });
+    }
+
+    await userRepository.delete(reqParams.data.id || reqUserId);
+    return formatResponse(res, { status: 200, messages: [{ type: "success", message: "User deleted successfully" }] });
   } catch (error) {
     LexoError.sendFormatedResponse(res, error, { fallBackErrorMsg: 'An error occured while deleting user' });
   }
@@ -151,5 +167,6 @@ userController.get("/:id", jwt, getOneById);
 userController.post("/login", login);
 userController.get("/", jwt, getAll);
 userController.delete("/", jwt, deleteOne);
+userController.delete("/:id", jwt, deleteOne);
 
 export default userController;
