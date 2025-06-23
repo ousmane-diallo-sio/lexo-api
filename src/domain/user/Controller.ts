@@ -5,7 +5,7 @@ import { jwt } from "../../lib/middlewares.js";
 import { z } from "zod";
 import { omit } from "../../lib/utils/index.js";
 import { CreateAdminUserSchema, CreateUserGoogleSchema, CreateUserSchema, UpdateUserSchema, UserLoginSchema } from "./ZodSchema.js";
-import { LexoError, ValidationError } from "../../exceptions/LexoError.js";
+import { ForbiddenError, LexoError, ValidationError } from "../../exceptions/LexoError.js";
 import { User } from "./Entity.js";
 import orm from "../../db/orm.js";
 
@@ -27,7 +27,13 @@ const getOneById: RequestHandler = async (req, res) => {
 };
 
 const getAll: RequestHandler = async (req, res) => {
+  const reqUserId = req.auth!.id;
   try {
+    const admin = await orm.getEmFork().findOne(User, { id: reqUserId, isAdmin: true });
+    if (!admin) {
+      return ForbiddenError.sendFormatedResponse(res);
+    }
+
     const users = await userRepository.findAll();
     return formatResponse(res, { status: 200, data: users });
   } catch (error) {
@@ -38,8 +44,8 @@ const getAll: RequestHandler = async (req, res) => {
 const createOne: RequestHandler = async (req, res) => {
   const isGoogleSignup = req.path.includes("/google");
   const isAdminCreation = req.path.includes("/admin");
-  const validation = isGoogleSignup 
-    ? CreateUserGoogleSchema.safeParse(req.body) 
+  const validation = isGoogleSignup
+    ? CreateUserGoogleSchema.safeParse(req.body)
     : isAdminCreation
       ? CreateAdminUserSchema.safeParse(req.body)
       : CreateUserSchema.safeParse(req.body);
@@ -70,14 +76,11 @@ const createOne: RequestHandler = async (req, res) => {
 };
 
 const updateOne: RequestHandler = async (req, res) => {
-  const { id } = req.params;
   const reqUserId = req.auth!.id;
-
-  if (id !== reqUserId) {
-    return formatResponse(res, {
-      status: 403,
-      messages: [{ type: "error", message: "Vous n'êtes pas autorisé à accéder à cette ressource" }],
-    });
+  const { id } = req.params;
+  const reqParams = z.object({ id: z.string().optional() }).safeParse(req.params);
+  if (!reqParams.success) {
+    return ValidationError.sendFormatedResponse(res, reqParams.error, { fallBackErrorMsg: 'Invalid request parameters' });
   }
 
   const validation = UpdateUserSchema.safeParse(req.body);
@@ -89,6 +92,10 @@ const updateOne: RequestHandler = async (req, res) => {
   };
 
   try {
+    const admin = await orm.getEmFork().findOne(User, { id: reqUserId, isAdmin: true });
+    if (!admin && reqParams.data.id && reqParams.data.id !== reqUserId) {
+      return ForbiddenError.sendFormatedResponse(res);
+    }
     const { data, messages, jwt } = await userRepository.update(id, validation.data);
     return formatResponse(res, { status: 200, data, messages, jwt });
   } catch (error) {
@@ -133,10 +140,8 @@ const login: RequestHandler = async (req, res) => {
 };
 
 const deleteOne: RequestHandler = async (req, res) => {
-  console.debug("Delete user request received", req.params);
   const reqUserId = req.auth!.id;
   const reqParams = z.object({ id: z.string().optional() }).safeParse(req.params);
-
   if (!reqParams.success) {
     return ValidationError.sendFormatedResponse(res, reqParams.error, { fallBackErrorMsg: 'Invalid request parameters' });
   }

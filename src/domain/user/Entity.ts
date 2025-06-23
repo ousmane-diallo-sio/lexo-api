@@ -1,8 +1,8 @@
-import { BeforeCreate, BeforeUpdate, BeforeUpsert, Cascade, Collection, Entity, type EventArgs, ManyToMany, OneToMany, OneToOne, PrimaryKey, Property, ref, type Rel, rel, Unique } from '@mikro-orm/core';
+import { BeforeCreate, BeforeUpdate, BeforeUpsert, Cascade, Collection, Entity, type EventArgs, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryKey, Property, Ref, ref, type Rel, rel, Unique } from '@mikro-orm/core';
 import jwt from "jsonwebtoken";
 import EnvConfig from '../../lib/config/EnvConfig.js';
 import crypto from "crypto";
-import type { CreateUserGoogleDTO, CreateUserDTO, CreateAdminUserDTO } from './index.d.ts';
+import type { CreateUserGoogleDTO, CreateUserDTO, CreateAdminUserDTO, CreateChildUserDTO } from './index.d.ts';
 import { BaseEntityWithUUID } from '../../db/BaseEntityWithUUID.js';
 
 @Entity()
@@ -11,14 +11,17 @@ export class User extends BaseEntityWithUUID {
   @Property({ unique: true })
   email!: string;
 
+  @Property()
+  firstName!: string;
+
+  @Property()
+  lastName!: string;
+
   @Property({ unique: true })
   googleId?: string;
 
-  @Property()
-  username: string;
-
-  @Property()
-  birthdate?: Date
+  @OneToMany(() => ChildUser, (child) => child.parent, { cascade: [Cascade.ALL], orphanRemoval: true })
+  children = new Collection<Rel<ChildUser>>(this);
 
   @Property()
   emailVerified: boolean = false;
@@ -36,14 +39,24 @@ export class User extends BaseEntityWithUUID {
   constructor(dto: CreateUserDTO | CreateUserGoogleDTO | CreateAdminUserDTO) {
     super();
     this.email = dto.email;
-    this.username = dto.username;
-    this.birthdate = dto.birthdate;
+    this.firstName = dto.firstName;
+    this.lastName = dto.lastName;
+
     if ('password' in dto && dto.password) {
       this.password = dto.password;
     }
+
     if ('googleId' in dto && dto.googleId) {
       this.googleId = dto.googleId;
     }
+
+    if ('children' in dto && dto.children && Array.isArray(dto.children)) {
+      dto.children.forEach(childDTO => {
+        const child = new ChildUser(childDTO);
+        this.children.add(child);
+      });
+    }
+
     if ('adminCreationKey' in dto && dto.adminCreationKey) {
       if (this.checkAdminCreationKey(dto.adminCreationKey, dto.email)) {
         if ('isAdmin' in dto && dto.isAdmin) {
@@ -82,4 +95,36 @@ export class User extends BaseEntityWithUUID {
     return _hash === this.password;
   }
 
+}
+
+@Entity()
+export class ChildUser extends BaseEntityWithUUID {
+
+  @Property()
+  firstName!: string;
+
+  @Property()
+  username!: string;
+
+  @Property()
+  birthdate!: Date;
+
+  @Property()
+  xp: number = 0;
+
+  @Property()
+  avatarUrl?: string;
+
+  @ManyToOne()
+  parent!: Rel<User>;
+
+  constructor(dto: CreateChildUserDTO) {
+    super();
+    this.firstName = dto.firstName;
+    this.username = dto.username;
+    this.birthdate = dto.birthdate;
+    if (dto.avatarUrl) {
+      this.avatarUrl = dto.avatarUrl;
+    }
+  }
 }

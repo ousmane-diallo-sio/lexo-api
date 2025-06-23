@@ -12,7 +12,7 @@ export class LexoError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 
-  static sendFormatedResponse(res: Response, error: unknown, args?: { status?: number, fallBackErrorMsg?: string }) {
+  static sendFormatedResponse(res: Response, error?: unknown, args?: { status?: number, fallBackErrorMsg?: string }) {
     console.error(`❌ ${res.req?.method} ${res.req?.url} : \n${error}\n`);
     if (error instanceof LexoError) {
       return formatResponse(res, { 
@@ -43,5 +43,11 @@ export class ValidationError extends LexoError {
 export class UnauthorizedError extends LexoError {
   constructor(message = "Unauthorized") {
     super(message, 401);
+  }
+}
+
+export class ForbiddenError extends LexoError {
+  constructor(message = "Forbidden") {
+    super(message, 403);
   }
 }
