@@ -23,7 +23,7 @@ export type BaseAnswerDTO = z.infer<typeof BaseAnswerSchema>;
 export type LetterExerciseAnswerDTO = z.infer<typeof LetterExerciseAnswerSchema>;
 export type ExerciseAnswerDTO = z.infer<typeof ExerciseAnswerSchema>;
 export type ExerciseValidationResponse = z.infer<typeof ExerciseValidationResponseSchema>;
-export type FilterQuery = z.infer<typeof FilterQuerySchema>;
+export type LexoFilterQuery = z.infer<typeof FilterQuerySchema>;
 
 
 

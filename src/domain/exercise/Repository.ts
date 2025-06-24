@@ -2,19 +2,13 @@ import { FilterQuery, QueryOrder, wrap } from '@mikro-orm/core';
 import { NotFoundError } from '../../exceptions/LexoError.js';
 import { Exercise, ExerciseDifficulty } from './Entity.js';
 import orm from '../../db/orm.js';
-import { 
-  type CreateExerciseType, 
-  type UpdateExerciseType, 
-  type ExerciseAnswerType, 
-  type ExerciseValidationResponseType,
-  type FilterQueryType
-} from './ZodSchema.js';
 import { AgeRange } from './ageRange/Entity.js';
 import { User } from '../user/Entity.js';
 import { exerciseServiceRegistry } from './services/ExerciseServiceRegistry.js';
+import { CreateExerciseDTO, ExerciseAnswerDTO, ExerciseValidationResponse, LexoFilterQuery, UpdateExerciseDTO } from './index.js';
 
 class ExerciseRepository {
-  async create(data: CreateExerciseType, userId: string) {
+  async create(data: CreateExerciseDTO, userId: string) {
     const em = orm.getEmFork();
     
     try {
@@ -40,7 +34,7 @@ class ExerciseRepository {
     }
   }
 
-  async update(id: string, data: UpdateExerciseType) {
+  async update(id: string, data: UpdateExerciseDTO) {
     const em = orm.getEmFork();
     
     try {
@@ -112,7 +106,7 @@ class ExerciseRepository {
     return await em.find(Exercise, { user: userId });
   }
 
-  async findAll(filters: FilterQueryType = {}) {
+  async findAll(filters: LexoFilterQuery = {}) {
     const em = orm.getEmFork();
     
     const whereOptions: FilterQuery<Exercise> = {};
@@ -160,7 +154,7 @@ class ExerciseRepository {
   }
   
   // Validate a user's answer to an exercise
-  async validateAnswer(answerData: ExerciseAnswerType): Promise<ExerciseValidationResponseType> {
+  async validateAnswer(answerData: ExerciseAnswerDTO): Promise<ExerciseValidationResponse> {
     const em = orm.getEmFork();
     
     try {
