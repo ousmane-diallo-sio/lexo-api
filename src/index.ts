@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import EnvConfig from './lib/config/EnvConfig.js';
 import userController from './domain/user/Controller.js';
 import childUserController from './domain/user/childUser/Controller.js';
+import exerciseController from './domain/exercise/Controller.js';
 import webhooks from './webhooks.js';
 import mikroORMConfig from './db/mikro-orm.config.js';
 import { authErrorHandler, requestLogger } from './lib/middlewares.js';
@@ -38,6 +39,7 @@ app.get('/', (req, res) => {
 app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use("/users", userController);
 app.use("/child-users", childUserController);
+app.use("/exercises", exerciseController);
 app.use("/webhooks", webhooks);
 
 app.use(authErrorHandler);
