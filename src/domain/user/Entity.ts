@@ -4,6 +4,7 @@ import EnvConfig from '../../lib/config/EnvConfig.js';
 import crypto from "crypto";
 import type { CreateUserGoogleDTO, CreateUserDTO, CreateAdminUserDTO, CreateChildUserDTO } from './index.d.ts';
 import { BaseEntityWithUUID } from '../../db/BaseEntityWithUUID.js';
+import { ChildUser } from './childUser/Entity.js';
 
 @Entity()
 export class User extends BaseEntityWithUUID {
@@ -95,36 +96,4 @@ export class User extends BaseEntityWithUUID {
     return _hash === this.password;
   }
 
-}
-
-@Entity()
-export class ChildUser extends BaseEntityWithUUID {
-
-  @Property()
-  firstName!: string;
-
-  @Property()
-  username!: string;
-
-  @Property()
-  birthdate!: Date;
-
-  @Property()
-  xp: number = 0;
-
-  @Property()
-  avatarUrl?: string;
-
-  @ManyToOne()
-  parent!: Rel<User>;
-
-  constructor(dto: CreateChildUserDTO) {
-    super();
-    this.firstName = dto.firstName;
-    this.username = dto.username;
-    this.birthdate = dto.birthdate;
-    if (dto.avatarUrl) {
-      this.avatarUrl = dto.avatarUrl;
-    }
-  }
 }

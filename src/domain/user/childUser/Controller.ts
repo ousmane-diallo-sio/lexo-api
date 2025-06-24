@@ -1,12 +1,12 @@
 import { RequestHandler, Router } from "express";
-import { formatResponse } from "../../lib/utils/response.js";
-import { jwt } from "../../lib/middlewares.js";
+import { formatResponse } from "../../../lib/utils/response.js";
+import { jwt } from "../../../lib/middlewares.js";
 import { z } from "zod";
+import { ForbiddenError, LexoError, ValidationError } from "../../../exceptions/LexoError.js";
+import { User } from "../Entity.js";
+import orm from "../../../db/orm.js";
+import { userChildRepository } from "./Repository.js";
 import { CreateUserChildSchema, UpdateUserChildSchema } from "./ZodSchema.js";
-import { ForbiddenError, LexoError, ValidationError } from "../../exceptions/LexoError.js";
-import { User } from "./Entity.js";
-import orm from "../../db/orm.js";
-import { userChildRepository } from "./ChildUserRepository.js";
 
 const userChildController = Router();
 

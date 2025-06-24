@@ -1,8 +1,9 @@
 import { FilterQuery, wrap } from '@mikro-orm/core';
-import { NotFoundError } from '../../exceptions/LexoError.js';
-import { ChildUser, User } from './Entity.js';
-import orm from '../../db/orm.js';
-import { CreateChildUserDTO, UpdateChildUserDTO } from './index.js';
+import { NotFoundError } from '../../../exceptions/LexoError.js';
+import { User } from '../Entity.js';
+import orm from '../../../db/orm.js';
+import { CreateChildUserDTO, UpdateChildUserDTO } from '../index.js';
+import { ChildUser } from './Entity.js';
 
 class UserChildRepository {
   async create(parentId: string, data: CreateChildUserDTO) {
