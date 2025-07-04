@@ -24,7 +24,7 @@ services:
     depends_on:
       - lexo-db
     ports:
-      - 3005:3005
+      - 3006:3006
     environment:
       - MIKRO_ORM_DB_HOST=lexo-db
       - MIKRO_ORM_DB_NAME=${MIKRO_ORM_DB_NAME}
