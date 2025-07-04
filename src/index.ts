@@ -33,7 +33,7 @@ app.use(requestLogger);
 
 app.get('/', (req, res) => {
   res.contentType("application/json")
-  res.send('Hello World!')
+  res.send('Hello Lexo!')
 })
 
 app.use('/public', express.static(path.join(__dirname, '../public')));
