@@ -26,7 +26,7 @@ Sample env file:
 # .env
 NODE_ENV=dev
 HOST=127.0.0.1
-PORT=3005
+PORT=3006
 MIKRO_ORM_DB_NAME=lexo-db
 MIKRO_ORM_DB_USER=lexoouser
 MIKRO_ORM_DB_PASSWORD=azerty
@@ -37,6 +37,6 @@ DOCKERHUB_USERNAME=lexo
 DOCKERHUB_TOKEN=dockerhubtoken
 DOCKERHUB_CONTAINER_NAME=lexo-api
 DOCKERHUB_WEBHOOK_TOKEN=dockerhubwebhooktoken
-API_BASE_URL=http://localhost:3005
+API_BASE_URL=http://localhost:3006
 ADMIN_CREATION_KEY=admincreationkey
 ```

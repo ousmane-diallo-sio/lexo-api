@@ -7,6 +7,6 @@ spec:
   type: LoadBalancer
   ports:
     - port: 80
-      targetPort: 3005
+      targetPort: 3006
   selector:
     app: lexo-api

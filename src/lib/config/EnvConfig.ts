@@ -1,6 +1,6 @@
 const EnvConfig = {
   HOST: process.env.HOST ?? "127.0.0.1",
-  PORT: process.env.PORT ?? 3005,
+  PORT: process.env.PORT ?? 3006,
   MIKRO_ORM_DB_HOST: process.env.MIKRO_ORM_DB_HOST ?? "missing db host",
   MIKRO_ORM_DB_NAME: process.env.MIKRO_ORM_DB_NAME ?? "randomdb",
   MIKRO_ORM_DB_USER: process.env.MIKRO_ORM_DB_USER ?? "user",
