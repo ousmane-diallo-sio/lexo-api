@@ -7,6 +7,7 @@
     "dev": "watchexec --restart --watch src --exts ts,json --debounce 500 -- 'bun run build && bun run start'",
     "build": "bun build src/index.ts --outdir ./dist --target=bun -e oracledb -e mysql -e better-sqlite3 -e mysql2 -e pg-query-stream -e tedious -e sqlite3 -e libsql -e mariadb",
     "docker:dev": "docker compose -f docker-compose-dev.yaml up",
+    "docker": "docker compose -f docker-compose.yaml up",
     "schema:create:dump": "bun run src/write-command.ts schema:create:dump",
     "schema:create:run": "bun run src/write-command.ts schema:create:run",
     "schema:update:dump": "bun run src/write-command.ts schema:update:dump",
