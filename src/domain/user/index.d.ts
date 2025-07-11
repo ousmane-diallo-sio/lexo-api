@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { CreateAdminUserSchema, CreateUserChildSchema, CreateUserGoogleSchema, CreateUserSchema, UpdateUserChildSchema, UpdateUserSchema } from "./ZodSchema.js";
+import { CreateAdminUserSchema, CreateUserGoogleSchema, CreateUserSchema, UpdateUserSchema } from "./ZodSchema.js";
+import { CreateUserChildSchema, UpdateUserChildSchema } from "./childUser/ZodSchema.ts";
 
 export type CreateUserDTO = z.infer<typeof CreateUserSchema>;
 
