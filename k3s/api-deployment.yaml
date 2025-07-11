@@ -29,7 +29,7 @@ spec:
                 secretKeyRef:
                   name: lexo-api-db-secrets
                   key: db-user
-            - name: DB_PASSWORD
+            - name: MIKRO_ORM_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: lexo-api-db-secrets
@@ -38,7 +38,7 @@ spec:
               value: lexo-db
             - name: MIKRO_ORM_DB_PORT
               value: "5432"
-            - name: DB_HOST
+            - name: MIKRO_ORM_DB_HOST
               value: lexo-db-service
             - name: DOCKERHUB_WEBHOOK_TOKEN
               valueFrom:
