@@ -1,7 +1,7 @@
-import { Entity, ManyToOne, Property, Rel } from "@mikro-orm/core";
+import { Entity, ManyToOne, Property, type Rel } from "@mikro-orm/core";
 import { BaseEntityWithUUID } from "../../../db/BaseEntityWithUUID.js";
 import { User } from "../Entity.js";
-import { CreateChildUserDTO } from "../index.js";
+import type { CreateChildUserDTO } from "../index.d.ts";
 
 @Entity()
 export class ChildUser extends BaseEntityWithUUID {

@@ -2,6 +2,7 @@ import { Collection, Embeddable, Embedded, Entity, ManyToMany, ManyToOne, Proper
 import { Exercise, ExerciseDifficulty } from "../Entity.js";
 import { AgeRange } from "../ageRange/Entity.js";
 import EnvConfig from "../../../lib/config/EnvConfig.js";
+import { BaseEntityWithUUID } from "../../../db/BaseEntityWithUUID.js";
 
 @Entity()
 export class ColorExercise extends Exercise {
@@ -17,7 +18,7 @@ export class ColorExercise extends Exercise {
 }
 
 @Entity()
-export class Color {
+export class Color extends BaseEntityWithUUID {
   @Property()
   color!: string;
 
@@ -25,6 +26,7 @@ export class Color {
   name!: string;
 
   constructor(color: string, name: string) {
+    super();
     this.color = color;
     this.name = name;
   }
