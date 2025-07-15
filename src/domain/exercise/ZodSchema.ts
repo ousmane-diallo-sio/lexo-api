@@ -22,6 +22,7 @@ export const BaseExerciseSchema = z.object({
   xp: z.number().nonnegative({ message: "XP must be a non-negative number" }),
   ageRange: AgeRangeSchema,
   difficulty: z.nativeEnum(ExerciseDifficulty),
+  availableToChildren: z.array(z.string().uuid({ message: "Child ID must be a valid UUID" })).optional(),
 });
 
 export const CreateLetterExerciseSchema = BaseExerciseSchema.extend({
