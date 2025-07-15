@@ -1,0 +1,1324 @@
+{
+	"info": {
+		"_postman_id": "ef58ed73-8e75-40ba-a587-cf4b7230f63c",
+		"name": "Lexo API - Complete Test Suite",
+		"description": "Complete test suite for the entire Lexo API - Users, Child Users, Exercises, and Webhooks",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32383350",
+		"_collection_link": "https://papino-team-aladinne-x.postman.co/workspace/papino-team-aladinne-x-Workspac~e5b64071-25a9-4e6f-9d10-a54abe0a7d46/collection/32383350-ef58ed73-8e75-40ba-a587-cf4b7230f63c?action=share&source=collection_link&creator=32383350"
+	},
+	"item": [
+		{
+			"name": "🔑 Authentication",
+			"item": [
+				{
+					"name": "Create Test User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random ID to avoid duplicate emails",
+									"const randomId = Math.random().toString(36).substring(2, 8);",
+									"pm.collectionVariables.set('randomId', randomId);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.jwt) {",
+									"        pm.collectionVariables.set('jwt', responseJson.jwt);",
+									"        console.log('JWT token saved:', responseJson.jwt);",
+									"    }",
+									"    if (responseJson.data && responseJson.data.id) {",
+									"        pm.collectionVariables.set('userId', responseJson.data.id);",
+									"        console.log('User ID saved:', responseJson.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test{{randomId}}@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Google User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"google{{randomId}}@example.com\",\n  \"googleId\": \"google{{randomId}}\",\n  \"firstName\": \"Google\",\n  \"lastName\": \"User\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/google",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"google"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Admin User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.jwt) {",
+									"        pm.collectionVariables.set('adminJwt', responseJson.jwt);",
+									"        console.log('Admin JWT token saved:', responseJson.jwt);",
+									"    }",
+									"    if (responseJson.data && responseJson.data.id) {",
+									"        pm.collectionVariables.set('adminUserId', responseJson.data.id);",
+									"        console.log('Admin User ID saved:', responseJson.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin{{randomId}}@example.com\",\n  \"password\": \"admin123\",\n  \"firstName\": \"Admin\",\n  \"lastName\": \"User\",\n  \"isAdmin\": true,\n  \"adminCreationKey\": \"admincreationkey\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/admin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.jwt) {",
+									"        pm.collectionVariables.set('jwt', responseJson.jwt);",
+									"        console.log('JWT token saved:', responseJson.jwt);",
+									"    }",
+									"    if (responseJson.data && responseJson.data.id) {",
+									"        pm.collectionVariables.set('userId', responseJson.data.id);",
+									"        console.log('User ID saved:', responseJson.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test{{randomId}}@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👤 Users Management",
+			"item": [
+				{
+					"name": "Get Current User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminJwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Current User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Updated Test\",\n  \"lastName\": \"Updated User\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Current User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User by ID (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminJwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👶 Child Users Management",
+			"item": [
+				{
+					"name": "Get All Children",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/child-users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"child-users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Child User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.data && responseJson.data.id) {",
+									"        pm.collectionVariables.set('childId', responseJson.data.id);",
+									"        console.log('Child ID saved:', responseJson.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Little\",\n  \"username\": \"child{{randomId}}\",\n  \"birthdate\": \"2018-01-01T00:00:00.000Z\",\n  \"avatarUrl\": \"https://example.com/avatar.png\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/child-users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"child-users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Child by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/child-users/{{childId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"child-users",
+								"{{childId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Child User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Updated Little\",\n  \"username\": \"updatedchild{{randomId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/child-users/{{childId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"child-users",
+								"{{childId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Child User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/child-users/{{childId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"child-users",
+								"{{childId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📚 Exercises Management",
+			"item": [
+				{
+					"name": "Get All Exercises (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exercises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exercises with Filters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exercises?difficulty=easy&minAge=5&maxAge=10&limit=10&offset=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "easy"
+								},
+								{
+									"key": "minAge",
+									"value": "5"
+								},
+								{
+									"key": "maxAge",
+									"value": "10"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Letter Exercise",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.data && responseJson.data.id) {",
+									"        pm.collectionVariables.set('exerciseId', responseJson.data.id);",
+									"        console.log('Exercise ID saved:', responseJson.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Learn ABC Letters {{randomId}}\",\n  \"description\": \"Practice identifying letters A, B, and C\",\n  \"durationMinutes\": 10,\n  \"mainColor\": \"#FF6B6B\",\n  \"thumbnailUrl\": \"https://example.com/abc-thumbnail.png\",\n  \"difficulty\": \"easy\",\n  \"xp\": 150,\n  \"ageRange\": {\n    \"min\": 4,\n    \"max\": 7\n  },\n  \"letters\": [\"A\", \"B\", \"C\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Advanced Letter Exercise",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Advanced Letter Recognition {{randomId}}\",\n  \"description\": \"Practice with complex letters and mixed case\",\n  \"durationMinutes\": 20,\n  \"mainColor\": \"#4ECDC4\",\n  \"thumbnailUrl\": \"https://example.com/advanced-letters.png\",\n  \"difficulty\": \"hard\",\n  \"xp\": 300,\n  \"ageRange\": {\n    \"min\": 8,\n    \"max\": 12\n  },\n  \"letters\": [\"X\", \"Y\", \"Z\", \"Q\", \"W\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exercise by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exercises/{{exerciseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"{{exerciseId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Exercises",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exercises/my/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"my",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exercise",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Updated ABC Letters {{randomId}}\",\n  \"description\": \"Updated practice with letters A, B, C, and D\",\n  \"letters\": [\"A\", \"B\", \"C\", \"D\"],\n  \"xp\": 200\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/{{exerciseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"{{exerciseId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Exercise",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exercises/{{exerciseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"{{exerciseId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "✅ Exercise Validation",
+			"item": [
+				{
+					"name": "Validate Correct Answer (by index)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Incorrect Answer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"Z\",\n  \"letterIndex\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Case Insensitive Answer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"c\",\n  \"letterIndex\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔗 Webhooks",
+			"item": [
+				{
+					"name": "GitHub Workflow Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"callback_url\": \"https://registry.hub.docker.com/u/svendowideit/busybox/hook/2141b5bi5i5b02bec211i4eeih0242eg11000a/\",\n  \"push_data\": {\n    \"images\": [],\n    \"pushed_at\": 1417566161,\n    \"pusher\": \"trustedbuilder\",\n    \"tag\": \"latest\"\n  },\n  \"repository\": {\n    \"comment_count\": \"0\",\n    \"date_created\": 1417494799,\n    \"description\": \"\",\n    \"dockerfile\": \"#\\n# example Dockerfile for https://docs.docker.com/examples/postgresql_service/\\n#\\n\\nFROM ubuntu\\nMAINTAINER SvenDowideit@home.org.au\\n\\n# Add the PostgreSQL PGP key to verify their Debian packages.\\n# It should be the same key as https://www.postgresql.org/media/keys/ACCC4CF8.asc\\nRUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8\\n\\n# Add PostgreSQL's repository. It contains the most recent stable release\\n#     of PostgreSQL, ``9.3``.\\nRUN echo \\\"deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main\\\" > /etc/apt/sources.list.d/pgdg.list\\n\\n# Install ``python-software-properties``, ``software-properties-common`` and PostgreSQL 9.3\\n#  There are some warnings (in red) that show up during the build. You can hide\\n#  them by prefixing each apt-get line with DEBIAN_FRONTEND=noninteractive\\nRUN apt-get update && apt-get install -y python-software-properties software-properties-common postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3\\n\\n# Note: The official Debian and Ubuntu images automatically ``apt-get clean``\\n# after each ``apt-get``\\n\\n# Run the rest of the commands as the ``postgres`` user created by the ``postgres-9.3`` package when it was ``apt-get installed``\\nUSER postgres\\n\\n# Create a PostgreSQL role named ``docker`` with ``docker`` as the password and\\n# then create a database `docker` owned by the ``docker`` role.\\n# Note: here we use ``&&\\\\`` to run commands one after the other - the ``\\\\``\\n#       allows the RUN command to span multiple lines.\\nRUN    /etc/init.d/postgresql start &&\\\\\\n    psql --command \\\"CREATE USER docker WITH SUPERUSER PASSWORD 'docker';\\\" &&\\\\\\n    createdb -O docker docker\\n\\n# Adjust PostgreSQL configuration so that remote connections to the\\n# database are possible.\\nRUN echo \\\"host all  all    0.0.0.0/0  md5\\\" >> /etc/postgresql/9.3/main/pg_hba.conf\\n\\n# And add ``listen_addresses`` to ``/etc/postgresql/9.3/main/postgresql.conf``\\nRUN echo \\\"listen_addresses='*'\\\" >> /etc/postgresql/9.3/main/postgresql.conf\\n\\n# Expose the PostgreSQL port\\nEXPOSE 5432\\n\\n# Add VOLUMEs to allow backup of config, logs and databases\\nVOLUME  [\\\"/etc/postgresql\\\", \\\"/var/log/postgresql\\\", \\\"/var/lib/postgresql\\\"]\\n\\n# Set the default command to run when starting the container\\nCMD [\\\"/usr/lib/postgresql/9.3/bin/postgres\\\", \\\"-D\\\", \\\"/var/lib/postgresql/9.3/main\\\", \\\"-c\\\", \\\"config_file=/etc/postgresql/9.3/main/postgresql.conf\\\"]\",\n    \"full_description\": \"Docker Hub based automated build from a GitHub repo\",\n    \"is_official\": false,\n    \"is_private\": true,\n    \"is_trusted\": true,\n    \"name\": \"busybox\",\n    \"namespace\": \"svendowideit\",\n    \"owner\": \"svendowideit\",\n    \"repo_name\": \"svendowideit/busybox\",\n    \"repo_url\": \"https://registry.hub.docker.com/u/svendowideit/busybox/\",\n    \"star_count\": 0,\n    \"status\": \"Active\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/webhooks/github-workflow?t=gaPm2UiLy134VVL4XVABn",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"webhooks",
+								"github-workflow"
+							],
+							"query": [
+								{
+									"key": "t",
+									"value": "gaPm2UiLy134VVL4XVABn"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🌐 Static Files & Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Letter Image",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/letters/A.png",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"letters",
+								"A.png"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Number Image",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/numbers/1.png",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"numbers",
+								"1.png"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🚨 Error Testing & Edge Cases",
+			"item": [
+				{
+					"name": "Invalid Login Credentials",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nonexistent@example.com\",\n  \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unauthorized Request (No JWT)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Exercise - Invalid Data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"\",\n  \"description\": \"Missing title\",\n  \"durationMinutes\": -5,\n  \"letters\": []\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Answer - Invalid Exercise ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"00000000-0000-0000-0000-000000000000\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exercise - Invalid ID Format",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/exercises/invalid-uuid-format",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"invalid-uuid-format"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Answer - Out of Bounds Index",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 999\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User - Duplicate Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test{{randomId}}@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Duplicate\",\n  \"lastName\": \"User\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Answer - Missing Child ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Answer - Invalid Child ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"childId\": \"00000000-0000-0000-0000-000000000000\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Answer - Missing Letter Index",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{exerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid Webhook Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"test\": \"webhook\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/webhooks/github-workflow?t=invalid-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"webhooks",
+								"github-workflow"
+							],
+							"query": [
+								{
+									"key": "t",
+									"value": "invalid-token"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://lexo-api.lemonware.dev",
+			"type": "string"
+		},
+		{
+			"key": "jwt",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "exerciseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "childId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randomId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminJwt",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminUserId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

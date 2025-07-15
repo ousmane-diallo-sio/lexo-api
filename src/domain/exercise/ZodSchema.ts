@@ -47,14 +47,14 @@ export const UpdateExerciseSchema = z.discriminatedUnion('exerciseType', [
 // Base answer schema
 export const BaseAnswerSchema = z.object({
   exerciseId: z.string().uuid({ message: "Invalid exercise ID format" }),
+  childId: z.string().uuid({ message: "Invalid child ID format" }),
 });
 
 // Letter exercise answer schema
 export const LetterExerciseAnswerSchema = BaseAnswerSchema.extend({
   exerciseType: z.literal('letter'),
   answer: z.string().min(1, { message: "Answer cannot be empty" }).max(1, { message: "Answer must be a single character" }),
-  letterIndex: z.number().int().nonnegative().optional(),
-  letterValue: z.string().min(1).max(1).optional(),
+  letterIndex: z.number().int().nonnegative({ message: "Letter index must be a non-negative integer" }),
 });
 
 // Union type for all exercise answer types

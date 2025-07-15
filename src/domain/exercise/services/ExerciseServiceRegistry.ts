@@ -1,15 +1,10 @@
 import { IExerciseTypeService } from './IExerciseTypeService.js';
-import { LetterExerciseService } from './LetterExerciseService.js';
 
 /**
  * Registry for all exercise type services
  */
 export class ExerciseServiceRegistry {
   private services: IExerciseTypeService[] = [];
-
-  constructor() {
-    this.registerService(new LetterExerciseService());
-  }
 
   /**
    * Register a new exercise type service
