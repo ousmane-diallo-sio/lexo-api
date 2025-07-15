@@ -623,7 +623,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Learn ABC Letters {{randomId}}\",\n  \"description\": \"Practice identifying letters A, B, and C\",\n  \"durationMinutes\": 10,\n  \"mainColor\": \"#FF6B6B\",\n  \"thumbnailUrl\": \"https://example.com/abc-thumbnail.png\",\n  \"difficulty\": \"easy\",\n  \"xp\": 150,\n  \"ageRange\": {\n    \"min\": 4,\n    \"max\": 7\n  },\n  \"letters\": [\"A\", \"B\", \"C\"]\n}"
+							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Learn ABC Letters {{randomId}}\",\n  \"description\": \"Practice identifying letters A, B, and C\",\n  \"durationMinutes\": 10,\n  \"mainColor\": \"#FF6B6B\",\n  \"thumbnailUrl\": \"https://example.com/abc-thumbnail.png\",\n  \"difficulty\": \"easy\",\n  \"xp\": 150,\n  \"ageRange\": {\n    \"min\": 4,\n    \"max\": 7\n  },\n  \"letters\": [\"A\", \"B\", \"C\"],\n  \"availableToChildren\": [\"{{childId}}\"]\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/exercises",
@@ -659,7 +659,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Advanced Letter Recognition {{randomId}}\",\n  \"description\": \"Practice with complex letters and mixed case\",\n  \"durationMinutes\": 20,\n  \"mainColor\": \"#4ECDC4\",\n  \"thumbnailUrl\": \"https://example.com/advanced-letters.png\",\n  \"difficulty\": \"hard\",\n  \"xp\": 300,\n  \"ageRange\": {\n    \"min\": 8,\n    \"max\": 12\n  },\n  \"letters\": [\"X\", \"Y\", \"Z\", \"Q\", \"W\"]\n}"
+							"raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Advanced Letter Recognition {{randomId}}\",\n  \"description\": \"Practice with complex letters and mixed case\",\n  \"durationMinutes\": 20,\n  \"mainColor\": \"#4ECDC4\",\n  \"thumbnailUrl\": \"https://example.com/advanced-letters.png\",\n  \"difficulty\": \"hard\",\n  \"xp\": 300,\n  \"ageRange\": {\n    \"min\": 8,\n    \"max\": 12\n  },\n  \"letters\": [\"X\", \"Y\", \"Z\", \"Q\", \"W\"],\n  \"availableToChildren\": [\"{{childId}}\"]\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/exercises",
