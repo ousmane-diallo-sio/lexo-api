@@ -4,6 +4,8 @@ import { Exercise } from '../Entity.js';
 import { CreateExerciseDTO, ExerciseAnswerDTO, ExerciseValidationResponse, UpdateExerciseDTO } from '../index.js';
 import { LetterExercise, Letter } from './Entity.js';
 import { AgeRange } from '../ageRange/Entity.js';
+import { ChildUser } from '../../user/childUser/Entity.js';
+import { NotFoundError } from '../../../exceptions/LexoError.js';
 
 export class LetterExerciseService implements IExerciseTypeService {
   
@@ -38,7 +40,6 @@ export class LetterExerciseService implements IExerciseTypeService {
       throw new Error('Exercise is not a letter exercise');
     }
 
-    // Update letters if provided
     if (data.letters) {
       exercise.letters = data.letters.map(letter => new Letter(letter));
     }
@@ -51,35 +52,38 @@ export class LetterExerciseService implements IExerciseTypeService {
       throw new Error('Exercise is not a letter exercise');
     }
 
-    // Validate specific letter at index
-    let isCorrect = false;
-    let expectedAnswer = '';
-    let feedback = '';
+    const child = await em.findOne(ChildUser, answer.childId);
+    if (!child) {
+      throw new NotFoundError('Child user not found');
+    }
+    
+    if (answer.letterIndex < 0 || answer.letterIndex >= exercise.letters.length) {
+      return {
+        correct: false,
+        expectedAnswer: 'N/A',
+        feedback: 'Invalid letter position',
+        gainedXp: 0
+      };
+    }
 
-    if ('letterIndex' in answer && answer.letterIndex !== undefined) {
-      const letterIndex = answer.letterIndex as number;
-      if (letterIndex >= 0 && letterIndex < exercise.letters.length) {
-        const expectedLetter = exercise.letters[letterIndex].letter;
-        // Case insensitive comparison
-        isCorrect = answer.answer.toUpperCase() === expectedLetter.toUpperCase();
-        expectedAnswer = expectedLetter;
-        feedback = isCorrect 
-          ? `Correct! The letter at position ${letterIndex + 1} is ${expectedLetter}` 
-          : `Try again! The letter at position ${letterIndex + 1} should be ${expectedLetter}`;
-      } else {
-        feedback = 'Invalid letter position';
-        expectedAnswer = 'N/A';
-      }
-    } else {
-      feedback = 'Letter index is required for validation';
-      expectedAnswer = 'N/A';
+    const expectedLetter = exercise.letters[answer.letterIndex].letter;
+    const isCorrect = answer.answer.toUpperCase() === expectedLetter.toUpperCase();
+    const feedback = isCorrect 
+      ? `Correct! The letter at position ${answer.letterIndex + 1} is ${expectedLetter}` 
+      : `Try again! The letter at position ${answer.letterIndex + 1} should be ${expectedLetter}`;
+    
+    let gainedXp = 0;
+    if (isCorrect) {
+      gainedXp = exercise.xp / exercise.letters.length;
+      child.xp += gainedXp;
+      await em.flush();
     }
     
     return {
       correct: isCorrect,
-      expectedAnswer,
+      expectedAnswer: expectedLetter,
       feedback,
-      gainedXp: isCorrect ? exercise.xp : 0
+      gainedXp
     };
   }
 }
