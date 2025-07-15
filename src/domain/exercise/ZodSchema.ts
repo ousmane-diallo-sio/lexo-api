@@ -54,7 +54,6 @@ export const LetterExerciseAnswerSchema = BaseAnswerSchema.extend({
   exerciseType: z.literal('letter'),
   answer: z.string().min(1, { message: "Answer cannot be empty" }).max(1, { message: "Answer must be a single character" }),
   letterIndex: z.number().int().nonnegative().optional(),
-  letterValue: z.string().min(1).max(1).optional(),
 });
 
 // Union type for all exercise answer types

@@ -1,0 +1,474 @@
+{
+  "info": {
+    "name": "Lexo API - Letter Exercise Tests",
+    "description": "Complete test suite for Letter Exercise functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://lexo-api.lemonware.dev",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "exercise_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.jwt) {",
+                  "        pm.collectionVariables.set('jwt_token', responseJson.jwt);",
+                  "        console.log('JWT token saved:', responseJson.jwt);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "login"]
+            }
+          }
+        },
+        {
+          "name": "Create Test User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Letter Exercises",
+      "item": [
+        {
+          "name": "Get All Exercises",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exercises",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises"]
+            }
+          }
+        },
+        {
+          "name": "Get All Exercises with Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exercises?difficulty=easy&minAge=5&maxAge=10&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises"],
+              "query": [
+                {
+                  "key": "difficulty",
+                  "value": "easy"
+                },
+                {
+                  "key": "minAge",
+                  "value": "5"
+                },
+                {
+                  "key": "maxAge",
+                  "value": "10"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Letter Exercise",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.data && responseJson.data.id) {",
+                  "        pm.collectionVariables.set('exercise_id', responseJson.data.id);",
+                  "        console.log('Exercise ID saved:', responseJson.data.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Learn ABC Letters\",\n  \"description\": \"Practice identifying letters A, B, and C\",\n  \"durationMinutes\": 10,\n  \"mainColor\": \"#FF6B6B\",\n  \"thumbnailUrl\": \"https://example.com/abc-thumbnail.png\",\n  \"difficulty\": \"easy\",\n  \"xp\": 150,\n  \"ageRange\": {\n    \"min\": 4,\n    \"max\": 7\n  },\n  \"letters\": [\"A\", \"B\", \"C\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises"]
+            }
+          }
+        },
+        {
+          "name": "Create Advanced Letter Exercise",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Advanced Letter Recognition\",\n  \"description\": \"Practice with more complex letters and mixed case\",\n  \"durationMinutes\": 20,\n  \"mainColor\": \"#4ECDC4\",\n  \"thumbnailUrl\": \"https://example.com/advanced-letters.png\",\n  \"difficulty\": \"hard\",\n  \"xp\": 300,\n  \"ageRange\": {\n    \"min\": 8,\n    \"max\": 12\n  },\n  \"letters\": [\"X\", \"Y\", \"Z\", \"Q\", \"W\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises"]
+            }
+          }
+        },
+        {
+          "name": "Get Exercise by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exercises/{{exercise_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "{{exercise_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get My Exercises",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exercises/my/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "my", "all"]
+            }
+          }
+        },
+        {
+          "name": "Update Letter Exercise",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"Updated ABC Letters\",\n  \"description\": \"Updated practice with letters A, B, C, and D\",\n  \"letters\": [\"A\", \"B\", \"C\", \"D\"],\n  \"xp\": 200\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises/{{exercise_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "{{exercise_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Answer Validation",
+      "item": [
+        {
+          "name": "Validate Correct Answer (by index)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseId\": \"{{exercise_id}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Validate Incorrect Answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseId\": \"{{exercise_id}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"Z\",\n  \"letterIndex\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Validate Case Insensitive Answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseId\": \"{{exercise_id}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"c\",\n  \"letterIndex\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Edge Cases & Error Testing",
+      "item": [
+        {
+          "name": "Create Exercise - Invalid Data",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseType\": \"letter\",\n  \"title\": \"\",\n  \"description\": \"Missing title\",\n  \"durationMinutes\": -5,\n  \"letters\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises"]
+            }
+          }
+        },
+        {
+          "name": "Validate Answer - Invalid Exercise ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseId\": \"invalid-uuid\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Validate Answer - Out of Bounds Index",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exerciseId\": \"{{exercise_id}}\",\n  \"exerciseType\": \"letter\",\n  \"answer\": \"A\",\n  \"letterIndex\": 999\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exercises/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Get Exercise - Invalid ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exercises/invalid-uuid",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "invalid-uuid"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "Delete Exercise",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exercises/{{exercise_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["exercises", "{{exercise_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

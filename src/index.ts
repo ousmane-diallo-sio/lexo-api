@@ -13,6 +13,8 @@ import path from 'path';
 import { watchCommandFile } from './command-watcher.js';
 import orm from './db/orm.js';
 import cors from 'cors';
+import { exerciseServiceRegistry } from './domain/exercise/services/ExerciseServiceRegistry.js';
+import { LetterExerciseService } from './domain/exercise/letterExercise/Service.js';
 
 console.log('📀 Server starting');
 const app = express();
@@ -22,6 +24,10 @@ try {
   const mikroORM = await MikroORM.init(mikroORMConfig);
   orm.set(mikroORM);
   console.log('✅ MikroORM initialized');
+  
+  // Register exercise services
+  exerciseServiceRegistry.registerService(new LetterExerciseService());
+  console.log('✅ Exercise services registered');
 } catch (error) {
   console.error(`Error during MikroORM initialization:\n`, error);
   process.exit(1);

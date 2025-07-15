@@ -1,6 +1,7 @@
-import { FilterQuery, QueryOrder, wrap } from '@mikro-orm/core';
+import { FilterQuery, FindOptions, QueryOrder, wrap } from '@mikro-orm/core';
 import { NotFoundError } from '../../exceptions/LexoError.js';
 import { Exercise, ExerciseDifficulty } from './Entity.js';
+import { LetterExercise, Letter } from './letterExercise/Entity.js';
 import orm from '../../db/orm.js';
 import { AgeRange } from './ageRange/Entity.js';
 import { User } from '../user/Entity.js';
@@ -10,22 +11,17 @@ import { CreateExerciseDTO, ExerciseAnswerDTO, ExerciseValidationResponse, LexoF
 class ExerciseRepository {
   async create(data: CreateExerciseDTO, userId: string) {
     const em = orm.getEmFork();
-    
+
     try {
-      // Find the user
       const user = await em.findOne(User, userId);
-      
-      // Get the appropriate service for this exercise type
       const service = exerciseServiceRegistry.getServiceForType(data.exerciseType);
-      
-      // Create the exercise using the service
+
       let exercise = await service.create(em, data);
-      
-      // Set the user if available
+
       if (user) {
         exercise.user = user;
       }
-      
+
       await em.persistAndFlush(exercise);
       return exercise;
     } catch (error) {
@@ -36,19 +32,27 @@ class ExerciseRepository {
 
   async update(id: string, data: UpdateExerciseDTO) {
     const em = orm.getEmFork();
-    
+
     try {
-      // Find the exercise
-      const exercise = await em.findOneOrFail(Exercise, id, {
-        failHandler: () => new NotFoundError('Exercise not found')
-      });
-    
-      // Handle type-specific updates if exerciseType is provided
+      // Find the exercise in concrete types since Exercise is abstract
+      let exercise: Exercise | null = null;
+      
+      // Try letter exercise first
+      exercise = await em.findOne(LetterExercise, id);
+      
+      // Add other exercise types here when they exist
+      // if (!exercise) {
+      //   exercise = await em.findOne(NumberExercise, id);
+      // }
+
+      if (!exercise) {
+        throw new NotFoundError('Exercise not found');
+      }
+
       if ('exerciseType' in data && data.exerciseType) {
         const service = exerciseServiceRegistry.getServiceForType(data.exerciseType);
         await service.update(em, exercise, data);
       } else {
-        // Try to infer type from the exercise instance
         for (const exType of ['letter']) {
           try {
             const service = exerciseServiceRegistry.getServiceForType(exType);
@@ -59,24 +63,24 @@ class ExerciseRepository {
           }
         }
       }
-      
+
       // Update age range if provided
       if (data.ageRange) {
         exercise.ageRange = new AgeRange(
-          data.ageRange.min, 
+          data.ageRange.min,
           data.ageRange.max
         );
         delete data.ageRange;
       }
-      
+
       // Update general properties that apply to all exercise types
       const commonProps = { ...data };
       delete commonProps.exerciseType;
       delete commonProps.letters;
-      
+
       wrap(exercise).assign(commonProps as any);
       await em.flush();
-      
+
       return exercise;
     } catch (error) {
       console.error('Error updating exercise:', error);
@@ -86,86 +90,166 @@ class ExerciseRepository {
 
   async delete(id: string) {
     const em = orm.getEmFork();
-    const exercise = await em.findOneOrFail(Exercise, id, {
-      failHandler: () => new NotFoundError('Exercise not found')
-    });
     
+    // Find the exercise in concrete types since Exercise is abstract
+    let exercise: Exercise | null = null;
+    
+    // Try letter exercise first
+    exercise = await em.findOne(LetterExercise, id);
+    
+    // Add other exercise types here when they exist
+    // if (!exercise) {
+    //   exercise = await em.findOne(NumberExercise, id);
+    // }
+
+    if (!exercise) {
+      throw new NotFoundError('Exercise not found');
+    }
+
     await em.removeAndFlush(exercise);
     return true;
   }
 
   async findById(id: string) {
     const em = orm.getEmFork();
-    return await em.findOneOrFail(Exercise, id, {
-      failHandler: () => new NotFoundError('Exercise not found')
-    });
+    
+    // Try to find the exercise in each concrete type since Exercise is abstract
+    try {
+      const letterExercise = await em.findOne(LetterExercise, id);
+      if (letterExercise) {
+        // Transform letters to ensure they have their methods
+        if (letterExercise.letters) {
+          letterExercise.letters = letterExercise.letters.map((letterData: any) => 
+            letterData instanceof Letter ? letterData : new Letter(letterData.letter)
+          );
+        }
+        return letterExercise;
+      }
+    } catch (error) {
+      // Continue to next type
+    }
+
+    // Add other exercise types here when they exist
+    // try {
+    //   const numberExercise = await em.findOne(NumberExercise, id);
+    //   if (numberExercise) return numberExercise;
+    // } catch (error) {
+    //   // Continue to next type
+    // }
+
+    throw new NotFoundError('Exercise not found');
   }
-  
+
   async findByUserId(userId: string) {
     const em = orm.getEmFork();
-    return await em.find(Exercise, { user: userId });
+    
+    // Collect exercises from all concrete types
+    const exercises: Exercise[] = [];
+    
+    // Get letter exercises
+    const letterExercises = await em.find(LetterExercise, { user: userId });
+    letterExercises.forEach(exercise => {
+      // Transform letters to ensure they have their methods
+      if (exercise.letters) {
+        exercise.letters = exercise.letters.map((letterData: any) => 
+          letterData instanceof Letter ? letterData : new Letter(letterData.letter)
+        );
+      }
+      exercises.push(exercise);
+    });
+
+    // Add other exercise types here when they exist
+    // const numberExercises = await em.find(NumberExercise, { user: userId });
+    // exercises.push(...numberExercises);
+
+    return exercises;
   }
 
   async findAll(filters: LexoFilterQuery = {}) {
     const em = orm.getEmFork();
-    
-    const whereOptions: FilterQuery<Exercise> = {};
-    
-    // Apply filters
-    if (filters.difficulty) {
-      whereOptions.difficulty = filters.difficulty;
-    }
-    
-    // Age range filtering
-    if (filters.minAge !== undefined || filters.maxAge !== undefined) {
-      // Need to do this more complex due to embedded entity
-      const qb = em.createQueryBuilder(Exercise, 'e');
-      
+
+    const buildWhereOptions = (baseConditions: FilterQuery<any> = {}) => {
+      const whereOptions = { ...baseConditions };
+
+      if (filters.difficulty) {
+        whereOptions.difficulty = filters.difficulty;
+      }
+
       if (filters.minAge !== undefined) {
-        qb.where({ 'e.ageRange.minAge': { $lte: filters.minAge } });
+        whereOptions.age_range_min = { $lte: filters.minAge };
       }
-      
+
       if (filters.maxAge !== undefined) {
-        qb.andWhere({ 'e.ageRange.maxAge': { $gte: filters.maxAge } });
+        whereOptions.age_range_max = { $gte: filters.maxAge };
       }
-      
-      qb.orderBy({ createdAt: QueryOrder.DESC });
-      
-      if (filters.limit) {
-        qb.limit(filters.limit);
-      }
-      
-      if (filters.offset) {
-        qb.offset(filters.offset);
-      }
-      
-      const [exercises, total] = await qb.getResultAndCount();
-      return { exercises, total };
-    }
-    
-    // Standard query without age filtering
-    const [exercises, total] = await em.findAndCount(Exercise, whereOptions, {
+
+      return whereOptions;
+    };
+
+    const queryOptions: FindOptions<LetterExercise> = {
       limit: filters.limit,
       offset: filters.offset,
-      orderBy: { createdAt: QueryOrder.DESC }
+      orderBy: { id: QueryOrder.DESC }
+    };
+
+    const [letterExercises, letterTotal] = await em.findAndCount(
+      LetterExercise, 
+      buildWhereOptions(),
+      queryOptions
+    );
+
+    // Transform letter exercises to ensure letters have their get imageUrl() methods
+    const transformedLetterExercises = letterExercises.map(exercise => {
+      if (exercise.letters) {
+        exercise.letters = exercise.letters.map((letterData: any) => 
+          letterData instanceof Letter ? letterData : new Letter(letterData.letter)
+        );
+      }
+      return exercise;
     });
-    
-    return { exercises, total };
+
+    // const [numberExercises, numberTotal] = await em.findAndCount(
+    //   NumberExercise, 
+    //   buildWhereOptions(), 
+    //   queryOptions
+    // );
+
+    const totalExercises = letterTotal; // + numberTotal + ...
+
+    const exercises = {
+      letter: transformedLetterExercises,
+      // number: numberExercises,
+    };
+
+    return { 
+      exercises,
+      total: totalExercises 
+    };
   }
-  
+
   // Validate a user's answer to an exercise
   async validateAnswer(answerData: ExerciseAnswerDTO): Promise<ExerciseValidationResponse> {
     const em = orm.getEmFork();
-    
+
     try {
-      // Find the exercise
-      const exercise = await em.findOneOrFail(Exercise, answerData.exerciseId, {
-        failHandler: () => new NotFoundError('Exercise not found')
-      });
+      // Find the exercise in concrete types since Exercise is abstract
+      let exercise: Exercise | null = null;
       
+      // Try letter exercise first
+      exercise = await em.findOne(LetterExercise, answerData.exerciseId);
+      
+      // Add other exercise types here when they exist
+      // if (!exercise) {
+      //   exercise = await em.findOne(NumberExercise, answerData.exerciseId);
+      // }
+
+      if (!exercise) {
+        throw new NotFoundError('Exercise not found');
+      }
+
       // Get the appropriate service for this answer type
       const service = exerciseServiceRegistry.getServiceForType(answerData.exerciseType);
-      
+
       // Validate using the service
       return await service.validateAnswer(em, exercise, answerData);
     } catch (error) {
