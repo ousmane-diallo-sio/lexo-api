@@ -2,6 +2,7 @@ import { FilterQuery, FindOptions, QueryOrder, wrap } from '@mikro-orm/core';
 import { NotFoundError } from '../../exceptions/LexoError.js';
 import { Exercise, ExerciseDifficulty } from './Entity.js';
 import { LetterExercise, Letter } from './letterExercise/Entity.js';
+import { AnimalExercise, Animal } from './animalExercise/Entity.js';
 import orm from '../../db/orm.js';
 import { AgeRange } from './ageRange/Entity.js';
 import { User } from '../user/Entity.js';
@@ -41,6 +42,9 @@ class ExerciseRepository {
       exercise = await em.findOne(LetterExercise, id);
       
       // Add other exercise types here when they exist
+      if (!exercise) {
+        exercise = await em.findOne(AnimalExercise, id);
+      }
       // if (!exercise) {
       //   exercise = await em.findOne(NumberExercise, id);
       // }
@@ -53,7 +57,7 @@ class ExerciseRepository {
         const service = exerciseServiceRegistry.getServiceForType(data.exerciseType);
         await service.update(em, exercise, data);
       } else {
-        for (const exType of ['letter']) {
+        for (const exType of ['letter', 'animal']) {
           try {
             const service = exerciseServiceRegistry.getServiceForType(exType);
             await service.update(em, exercise, { ...data, exerciseType: exType as any });
@@ -76,7 +80,8 @@ class ExerciseRepository {
       // Update general properties that apply to all exercise types
       const commonProps = { ...data };
       delete commonProps.exerciseType;
-      delete commonProps.letters;
+      delete (commonProps as any).letters;
+      delete (commonProps as any).animals;
 
       wrap(exercise).assign(commonProps as any);
       await em.flush();
@@ -98,6 +103,9 @@ class ExerciseRepository {
     exercise = await em.findOne(LetterExercise, id);
     
     // Add other exercise types here when they exist
+    if (!exercise) {
+      exercise = await em.findOne(AnimalExercise, id);
+    }
     // if (!exercise) {
     //   exercise = await em.findOne(NumberExercise, id);
     // }
@@ -130,6 +138,20 @@ class ExerciseRepository {
     }
 
     // Add other exercise types here when they exist
+    try {
+      const animalExercise = await em.findOne(AnimalExercise, id);
+      if (animalExercise) {
+        // Transform animals to ensure they have their methods
+        if (animalExercise.animals) {
+          animalExercise.animals = animalExercise.animals.map((animalData: any) => 
+            animalData instanceof Animal ? animalData : new Animal(animalData.animal)
+          );
+        }
+        return animalExercise;
+      }
+    } catch (error) {
+      // Continue to next type
+    }
     // try {
     //   const numberExercise = await em.findOne(NumberExercise, id);
     //   if (numberExercise) return numberExercise;
@@ -159,6 +181,18 @@ class ExerciseRepository {
     });
 
     // Add other exercise types here when they exist
+    // Get animal exercises
+    const animalExercises = await em.find(AnimalExercise, { user: userId });
+    animalExercises.forEach(exercise => {
+      // Transform animals to ensure they have their methods
+      if (exercise.animals) {
+        exercise.animals = exercise.animals.map((animalData: any) => 
+          animalData instanceof Animal ? animalData : new Animal(animalData.animal)
+        );
+      }
+      exercises.push(exercise);
+    });
+    
     // const numberExercises = await em.find(NumberExercise, { user: userId });
     // exercises.push(...numberExercises);
 
@@ -186,7 +220,13 @@ class ExerciseRepository {
       return whereOptions;
     };
 
-    const queryOptions: FindOptions<LetterExercise> = {
+    const letterQueryOptions: FindOptions<LetterExercise> = {
+      limit: filters.limit,
+      offset: filters.offset,
+      orderBy: { id: QueryOrder.DESC }
+    };
+
+    const animalQueryOptions: FindOptions<AnimalExercise> = {
       limit: filters.limit,
       offset: filters.offset,
       orderBy: { id: QueryOrder.DESC }
@@ -195,7 +235,7 @@ class ExerciseRepository {
     const [letterExercises, letterTotal] = await em.findAndCount(
       LetterExercise, 
       buildWhereOptions(),
-      queryOptions
+      letterQueryOptions
     );
 
     // Transform letter exercises to ensure letters have their get imageUrl() methods
@@ -208,16 +248,33 @@ class ExerciseRepository {
       return exercise;
     });
 
+    const [animalExercises, animalTotal] = await em.findAndCount(
+      AnimalExercise, 
+      buildWhereOptions(),
+      animalQueryOptions
+    );
+
+    // Transform animal exercises to ensure animals have their get imageUrl() methods
+    const transformedAnimalExercises = animalExercises.map(exercise => {
+      if (exercise.animals) {
+        exercise.animals = exercise.animals.map((animalData: any) => 
+          animalData instanceof Animal ? animalData : new Animal(animalData.animal)
+        );
+      }
+      return exercise;
+    });
+
     // const [numberExercises, numberTotal] = await em.findAndCount(
     //   NumberExercise, 
     //   buildWhereOptions(), 
     //   queryOptions
     // );
 
-    const totalExercises = letterTotal; // + numberTotal + ...
+    const totalExercises = letterTotal + animalTotal; // + numberTotal + ...
 
     const exercises = {
       letter: transformedLetterExercises,
+      animal: transformedAnimalExercises,
       // number: numberExercises,
     };
 
@@ -239,6 +296,9 @@ class ExerciseRepository {
       exercise = await em.findOne(LetterExercise, answerData.exerciseId);
       
       // Add other exercise types here when they exist
+      if (!exercise) {
+        exercise = await em.findOne(AnimalExercise, answerData.exerciseId);
+      }
       // if (!exercise) {
       //   exercise = await em.findOne(NumberExercise, answerData.exerciseId);
       // }

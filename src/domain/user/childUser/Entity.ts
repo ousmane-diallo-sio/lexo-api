@@ -28,7 +28,7 @@ export class ChildUser extends BaseEntityWithUUID {
   @ManyToOne()
   parent!: Rel<User>;
 
-  @ManyToMany(() => Exercise, 'availableToChildren')
+  @ManyToMany()
   availableExercises = new Collection<Exercise>(this);
 
   constructor(dto: CreateChildUserDTO) {

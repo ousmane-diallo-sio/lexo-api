@@ -31,17 +31,31 @@ export const CreateLetterExerciseSchema = BaseExerciseSchema.extend({
     .min(1, { message: "At least one letter is required" })
 });
 
+export const CreateAnimalExerciseSchema = BaseExerciseSchema.extend({
+  exerciseType: z.literal('animal'),
+  animals: z.array(z.string().min(1, { message: "Animal name cannot be empty" }))
+    .min(1, { message: "At least one animal is required" })
+});
+
 // Union type for all exercise types
 export const CreateExerciseSchema = z.discriminatedUnion('exerciseType', [
   CreateLetterExerciseSchema,
+  CreateAnimalExerciseSchema,
   // Add other exercise types here as they are implemented
 ]);
 
-export const UpdateLetterExerciseSchema = CreateLetterExerciseSchema.partial();
+export const UpdateLetterExerciseSchema = CreateLetterExerciseSchema.partial().extend({
+  exerciseType: z.literal('letter'), // Keep exerciseType required for discriminated union
+});
+
+export const UpdateAnimalExerciseSchema = CreateAnimalExerciseSchema.partial().extend({
+  exerciseType: z.literal('animal'), // Keep exerciseType required for discriminated union
+});
 
 // Update schema using discriminated union
 export const UpdateExerciseSchema = z.discriminatedUnion('exerciseType', [
   UpdateLetterExerciseSchema,
+  UpdateAnimalExerciseSchema,
   // Add other exercise types here as they are implemented
 ]);
 
@@ -58,9 +72,17 @@ export const LetterExerciseAnswerSchema = BaseAnswerSchema.extend({
   letterIndex: z.number().int().nonnegative({ message: "Letter index must be a non-negative integer" }),
 });
 
+// Animal exercise answer schema
+export const AnimalExerciseAnswerSchema = BaseAnswerSchema.extend({
+  exerciseType: z.literal('animal'),
+  answer: z.string().min(1, { message: "Answer cannot be empty" }),
+  animalIndex: z.number().int().nonnegative({ message: "Animal index must be a non-negative integer" }),
+});
+
 // Union type for all exercise answer types
 export const ExerciseAnswerSchema = z.discriminatedUnion('exerciseType', [
   LetterExerciseAnswerSchema,
+  AnimalExerciseAnswerSchema,
   // Add other exercise answer types here as they are implemented
 ]);
 

@@ -1,7 +1,7 @@
 import { Embeddable, Embedded, Entity, Enum, ManyToMany, Collection, ManyToOne, Property } from '@mikro-orm/core';
 import { BaseEntityWithUUID } from '../../db/BaseEntityWithUUID.js';
 import { AgeRange } from './ageRange/Entity.js';
-import { User } from '../user/Entity.js';
+import type { User } from '../user/Entity.js';
 import { ChildUser } from '../user/childUser/Entity.js';
 
 @Entity()
@@ -34,7 +34,7 @@ export abstract class Exercise extends BaseEntityWithUUID {
   @Enum(() => ExerciseDifficulty)
   difficulty: ExerciseDifficulty;
 
-  @ManyToMany(() => ChildUser, 'availableExercises')
+  @ManyToMany()
   availableToChildren = new Collection<ChildUser>(this);
 
 

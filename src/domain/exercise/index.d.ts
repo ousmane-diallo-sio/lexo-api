@@ -2,12 +2,15 @@ import { z } from "zod";
 import { ExerciseDifficulty } from "./Entity.js";
 import {
   CreateLetterExerciseSchema,
+  CreateAnimalExerciseSchema,
   BaseExerciseSchema,
   CreateExerciseSchema,
   UpdateLetterExerciseSchema,
+  UpdateAnimalExerciseSchema,
   UpdateExerciseSchema,
   BaseAnswerSchema,
   LetterExerciseAnswerSchema,
+  AnimalExerciseAnswerSchema,
   ExerciseAnswerSchema,
   ExerciseValidationResponseSchema,
   FilterQuerySchema
@@ -16,11 +19,14 @@ import {
 // Re-export types from ZodSchema for backward compatibility
 export type BaseExerciseDTO = z.infer<typeof BaseExerciseSchema>;
 export type CreateLetterExerciseDTO = z.infer<typeof CreateLetterExerciseSchema>;
+export type CreateAnimalExerciseDTO = z.infer<typeof CreateAnimalExerciseSchema>;
 export type UpdateLetterExerciseDTO = z.infer<typeof UpdateLetterExerciseSchema>;
+export type UpdateAnimalExerciseDTO = z.infer<typeof UpdateAnimalExerciseSchema>;
 export type CreateExerciseDTO = z.infer<typeof CreateExerciseSchema>;
 export type UpdateExerciseDTO = z.infer<typeof UpdateExerciseSchema>;
 export type BaseAnswerDTO = z.infer<typeof BaseAnswerSchema>;
 export type LetterExerciseAnswerDTO = z.infer<typeof LetterExerciseAnswerSchema>;
+export type AnimalExerciseAnswerDTO = z.infer<typeof AnimalExerciseAnswerSchema>;
 export type ExerciseAnswerDTO = z.infer<typeof ExerciseAnswerSchema>;
 export type ExerciseValidationResponse = z.infer<typeof ExerciseValidationResponseSchema>;
 export type LexoFilterQuery = z.infer<typeof FilterQuerySchema>;
