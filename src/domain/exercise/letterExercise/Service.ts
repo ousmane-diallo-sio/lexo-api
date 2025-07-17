@@ -40,7 +40,7 @@ export class LetterExerciseService implements IExerciseTypeService {
       throw new Error('Exercise is not a letter exercise');
     }
 
-    if (data.letters) {
+    if (data.exerciseType === 'letter' && data.letters) {
       exercise.letters = data.letters.map(letter => new Letter(letter));
     }
 
@@ -50,6 +50,10 @@ export class LetterExerciseService implements IExerciseTypeService {
   async validateAnswer(em: EntityManager, exercise: Exercise, answer: ExerciseAnswerDTO): Promise<ExerciseValidationResponse> {
     if (!(exercise instanceof LetterExercise)) {
       throw new Error('Exercise is not a letter exercise');
+    }
+
+    if (answer.exerciseType !== 'letter') {
+      throw new Error('Answer is not for a letter exercise');
     }
 
     const child = await em.findOne(ChildUser, answer.childId);

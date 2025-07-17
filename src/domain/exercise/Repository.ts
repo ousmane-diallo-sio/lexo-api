@@ -57,15 +57,19 @@ class ExerciseRepository {
         const service = exerciseServiceRegistry.getServiceForType(data.exerciseType);
         await service.update(em, exercise, data);
       } else {
-        for (const exType of ['letter', 'animal']) {
-          try {
-            const service = exerciseServiceRegistry.getServiceForType(exType);
-            await service.update(em, exercise, { ...data, exerciseType: exType as any });
-            break;
-          } catch (e) {
-            // Continue to next type
-          }
+        // If no exerciseType is provided, try to determine it from the exercise instance
+        let exerciseType: string;
+        if (exercise instanceof LetterExercise) {
+          exerciseType = 'letter';
+        } else if (exercise instanceof AnimalExercise) {
+          exerciseType = 'animal';
+        } else {
+          throw new Error('Unknown exercise type');
         }
+        
+        const service = exerciseServiceRegistry.getServiceForType(exerciseType);
+        const dataWithType = Object.assign({}, data, { exerciseType });
+        await service.update(em, exercise, dataWithType as any);
       }
 
       // Update age range if provided
@@ -74,16 +78,21 @@ class ExerciseRepository {
           data.ageRange.min,
           data.ageRange.max
         );
-        delete data.ageRange;
       }
 
       // Update general properties that apply to all exercise types
-      const commonProps = { ...data };
-      delete commonProps.exerciseType;
-      delete (commonProps as any).letters;
-      delete (commonProps as any).animals;
+      const commonProps: any = {};
+      
+      // Copy common properties, excluding exercise-specific ones
+      if (data.title !== undefined) commonProps.title = data.title;
+      if (data.description !== undefined) commonProps.description = data.description;
+      if (data.durationMinutes !== undefined) commonProps.durationMinutes = data.durationMinutes;
+      if (data.mainColor !== undefined) commonProps.mainColor = data.mainColor;
+      if (data.thumbnailUrl !== undefined) commonProps.thumbnailUrl = data.thumbnailUrl;
+      if (data.xp !== undefined) commonProps.xp = data.xp;
+      if (data.difficulty !== undefined) commonProps.difficulty = data.difficulty;
 
-      wrap(exercise).assign(commonProps as any);
+      wrap(exercise).assign(commonProps);
       await em.flush();
 
       return exercise;
