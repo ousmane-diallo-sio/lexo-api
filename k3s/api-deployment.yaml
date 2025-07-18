@@ -40,6 +40,30 @@ spec:
               value: "5432"
             - name: MIKRO_ORM_DB_HOST
               value: lexo-db-service
+            - name: API_BASE_URL
+              value: "https://lexo-api.lemonware.dev"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-secrets
+                  key: jwt-secret
+            - name: ADMIN_CREATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-secrets
+                  key: admin-creation-key
+            - name: DOCKERHUB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-secrets
+                  key: dockerhub-username
+            - name: DOCKERHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: lexo-api-secrets
+                  key: dockerhub-token
+            - name: DOCKERHUB_CONTAINER_NAME
+              value: lexo-api
             - name: DOCKERHUB_WEBHOOK_TOKEN
               valueFrom:
                 secretKeyRef:
