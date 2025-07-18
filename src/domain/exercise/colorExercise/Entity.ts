@@ -1,52 +1,69 @@
-import { Collection, Embeddable, Embedded, Entity, ManyToMany, ManyToOne, Property } from "@mikro-orm/core";
+import { Entity, Property } from "@mikro-orm/core";
 import { Exercise, ExerciseDifficulty } from "../Entity.js";
 import { AgeRange } from "../ageRange/Entity.js";
 import EnvConfig from "../../../lib/config/EnvConfig.js";
-import { BaseEntityWithUUID } from "../../../db/BaseEntityWithUUID.js";
+
+export enum FruitType {
+  APPLE = 'apple',
+  BANANA = 'banana',
+  GRAPE = 'grape',
+  KIWI = 'kiwi',
+  ORANGE = 'orange',
+  PEACH = 'peach',
+  PINEAPPLE = 'pineapple',
+  RASPBERRY = 'raspberry'
+}
+
+export enum ColorName {
+  GREEN = 'green',
+  YELLOW = 'yellow',
+  BLACK = 'black',
+  PURPLE = 'purple',
+  BROWN = 'brown',
+  ORANGE = 'orange',
+  PINK = 'pink',
+  RED = 'red'
+}
 
 @Entity()
 export class ColorExercise extends Exercise {
 
-  @Embedded(() => ColorChallenge, { array: true })
-  colorChallenges = new Collection<ColorChallenge>(this);
+  @Property({ type: 'json' })
+  colorChallenges: ColorChallenge[] = [];
 
-  constructor(title: string, description: string, durationMinutes: number, mainColor: string, thumbnailUrl: string, ageRange: AgeRange, difficulty: ExerciseDifficulty, xp: number, colorChallenges: Collection<ColorChallenge>) {
+  constructor(title: string, description: string, durationMinutes: number, mainColor: string, thumbnailUrl: string, ageRange: AgeRange, difficulty: ExerciseDifficulty, xp: number, colorChallenges: ColorChallenge[]) {
     super(title, description, durationMinutes, mainColor, thumbnailUrl, ageRange, difficulty, xp);
     this.colorChallenges = colorChallenges;
   }
 
 }
 
-@Entity()
-export class Color extends BaseEntityWithUUID {
-  @Property()
-  color!: string;
-
-  @Property()
-  name!: string;
-
-  constructor(color: string, name: string) {
-    super();
-    this.color = color;
-    this.name = name;
-  }
-}
-
-@Embeddable()
 export class ColorChallenge {
+  fruit!: FruitType;
+  correctColor!: ColorName;
+  wrongColors!: ColorName[];
 
-  @ManyToOne()
-  color!: Color;
+  get imageUrl(): string {
+    return `${EnvConfig.API_BASE_URL}/public/fruits/${this.fruit}_${this.correctColor}.png`;
+  }
 
-  @ManyToMany()
-  wrongColors = new Collection<Color>(this);
+  get allColors(): ColorName[] {
+    return [this.correctColor, ...this.wrongColors];
+  }
 
-  @Property({ persist: false })
-  imageUrl!: string;
-
-  constructor(color: Color, wrongColors: Collection<Color>) {
-    this.color = color;
+  constructor(fruit: FruitType, correctColor: ColorName, wrongColors: ColorName[]) {
+    this.fruit = fruit;
+    this.correctColor = correctColor;
     this.wrongColors = wrongColors;
-    this.imageUrl = `${EnvConfig.API_BASE_URL}/public/colors/${color.name}.png`;
+  }
+
+  toJSON() {
+    return {
+      fruit: this.fruit,
+      correctColor: this.correctColor,
+      wrongColors: this.wrongColors,
+      allColors: this.allColors,
+      imageUrl: this.imageUrl
+    };
   }
 }

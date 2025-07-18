@@ -1,7 +1,8 @@
-import { Entity, ManyToOne, Property, type Rel } from "@mikro-orm/core";
+import { Entity, ManyToOne, ManyToMany, Collection, Property, type Rel } from "@mikro-orm/core";
 import { BaseEntityWithUUID } from "../../../db/BaseEntityWithUUID.js";
 import { User } from "../Entity.js";
 import type { CreateChildUserDTO } from "../index.d.ts";
+import { Exercise } from "../../exercise/Entity.js";
 
 @Entity()
 export class ChildUser extends BaseEntityWithUUID {
@@ -26,6 +27,9 @@ export class ChildUser extends BaseEntityWithUUID {
 
   @ManyToOne()
   parent!: Rel<User>;
+
+  @ManyToMany()
+  availableExercises = new Collection<Exercise>(this);
 
   constructor(dto: CreateChildUserDTO) {
     super();

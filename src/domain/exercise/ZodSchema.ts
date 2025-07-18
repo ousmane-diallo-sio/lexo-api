@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { ExerciseDifficulty } from './Entity.js';
+import { NumberImageType } from './numberExercise/Entity.js';
+import { FruitType, ColorName } from './colorExercise/Entity.js';
 
 export const ExerciseTypeSchema = z.enum(['letter', 'number', 'color', 'animal', 'reading']);
 
@@ -22,6 +24,7 @@ export const BaseExerciseSchema = z.object({
   xp: z.number().nonnegative({ message: "XP must be a non-negative number" }),
   ageRange: AgeRangeSchema,
   difficulty: z.nativeEnum(ExerciseDifficulty),
+  availableToChildren: z.array(z.string().uuid({ message: "Child ID must be a valid UUID" })).optional(),
 });
 
 export const CreateLetterExerciseSchema = BaseExerciseSchema.extend({
@@ -30,17 +33,59 @@ export const CreateLetterExerciseSchema = BaseExerciseSchema.extend({
     .min(1, { message: "At least one letter is required" })
 });
 
+export const CreateAnimalExerciseSchema = BaseExerciseSchema.extend({
+  exerciseType: z.literal('animal'),
+  animals: z.array(z.string().min(1, { message: "Animal name cannot be empty" }))
+    .min(1, { message: "At least one animal is required" })
+});
+
+export const CreateNumberExerciseSchema = BaseExerciseSchema.extend({
+  exerciseType: z.literal('number'),
+  numbers: z.array(z.number().int().min(0).max(10, { message: "Numbers must be between 0 and 10" }))
+    .min(1, { message: "At least one number is required" }),
+  imageType: z.nativeEnum(NumberImageType).default(NumberImageType.REGULAR)
+});
+
+export const CreateColorExerciseSchema = BaseExerciseSchema.extend({
+  exerciseType: z.literal('color'),
+  colorChallenges: z.array(z.object({
+    fruit: z.nativeEnum(FruitType),
+    correctColor: z.nativeEnum(ColorName),
+    wrongColors: z.array(z.nativeEnum(ColorName)).min(1, { message: "At least one wrong color is required" })
+  })).min(1, { message: "At least one color challenge is required" })
+});
+
 // Union type for all exercise types
 export const CreateExerciseSchema = z.discriminatedUnion('exerciseType', [
   CreateLetterExerciseSchema,
+  CreateAnimalExerciseSchema,
+  CreateNumberExerciseSchema,
+  CreateColorExerciseSchema,
   // Add other exercise types here as they are implemented
 ]);
 
-export const UpdateLetterExerciseSchema = CreateLetterExerciseSchema.partial();
+export const UpdateLetterExerciseSchema = CreateLetterExerciseSchema.partial().extend({
+  exerciseType: z.literal('letter'), // Keep exerciseType required for discriminated union
+});
+
+export const UpdateAnimalExerciseSchema = CreateAnimalExerciseSchema.partial().extend({
+  exerciseType: z.literal('animal'), // Keep exerciseType required for discriminated union
+});
+
+export const UpdateNumberExerciseSchema = CreateNumberExerciseSchema.partial().extend({
+  exerciseType: z.literal('number'), // Keep exerciseType required for discriminated union
+});
+
+export const UpdateColorExerciseSchema = CreateColorExerciseSchema.partial().extend({
+  exerciseType: z.literal('color'), // Keep exerciseType required for discriminated union
+});
 
 // Update schema using discriminated union
 export const UpdateExerciseSchema = z.discriminatedUnion('exerciseType', [
   UpdateLetterExerciseSchema,
+  UpdateAnimalExerciseSchema,
+  UpdateNumberExerciseSchema,
+  UpdateColorExerciseSchema,
   // Add other exercise types here as they are implemented
 ]);
 
@@ -57,9 +102,33 @@ export const LetterExerciseAnswerSchema = BaseAnswerSchema.extend({
   letterIndex: z.number().int().nonnegative({ message: "Letter index must be a non-negative integer" }),
 });
 
+// Animal exercise answer schema
+export const AnimalExerciseAnswerSchema = BaseAnswerSchema.extend({
+  exerciseType: z.literal('animal'),
+  answer: z.string().min(1, { message: "Answer cannot be empty" }),
+  animalIndex: z.number().int().nonnegative({ message: "Animal index must be a non-negative integer" }),
+});
+
+// Number exercise answer schema
+export const NumberExerciseAnswerSchema = BaseAnswerSchema.extend({
+  exerciseType: z.literal('number'),
+  answer: z.number().int().min(0).max(10, { message: "Answer must be a number between 0 and 10" }),
+  numberIndex: z.number().int().nonnegative({ message: "Number index must be a non-negative integer" }),
+});
+
+// Color exercise answer schema
+export const ColorExerciseAnswerSchema = BaseAnswerSchema.extend({
+  exerciseType: z.literal('color'),
+  answer: z.nativeEnum(ColorName),
+  challengeIndex: z.number().int().nonnegative({ message: "Challenge index must be a non-negative integer" }),
+});
+
 // Union type for all exercise answer types
 export const ExerciseAnswerSchema = z.discriminatedUnion('exerciseType', [
   LetterExerciseAnswerSchema,
+  AnimalExerciseAnswerSchema,
+  NumberExerciseAnswerSchema,
+  ColorExerciseAnswerSchema,
   // Add other exercise answer types here as they are implemented
 ]);
 

@@ -2,25 +2,25 @@ import { EntityManager } from '@mikro-orm/core';
 import { IExerciseTypeService } from '../services/IExerciseTypeService.js';
 import { Exercise } from '../Entity.js';
 import { CreateExerciseDTO, ExerciseAnswerDTO, ExerciseValidationResponse, UpdateExerciseDTO } from '../index.js';
-import { LetterExercise, Letter } from './Entity.js';
+import { AnimalExercise, Animal } from './Entity.js';
 import { AgeRange } from '../ageRange/Entity.js';
 import { ChildUser } from '../../user/childUser/Entity.js';
 import { NotFoundError } from '../../../exceptions/LexoError.js';
 
-export class LetterExerciseService implements IExerciseTypeService {
+export class AnimalExerciseService implements IExerciseTypeService {
   
   canHandle(exerciseType: string): boolean {
-    return exerciseType === 'letter';
+    return exerciseType === 'animal';
   }
 
   async create(em: EntityManager, data: CreateExerciseDTO): Promise<Exercise> {
-    if (data.exerciseType !== 'letter' || !data.letters) {
-      throw new Error('Invalid data for letter exercise');
+    if (data.exerciseType !== 'animal' || !data.animals) {
+      throw new Error('Invalid data for animal exercise');
     }
 
     const ageRange = new AgeRange(data.ageRange.min, data.ageRange.max);
     
-    const exercise = new LetterExercise(
+    const exercise = new AnimalExercise(
       data.title,
       data.description,
       data.durationMinutes,
@@ -29,31 +29,31 @@ export class LetterExerciseService implements IExerciseTypeService {
       ageRange,
       data.difficulty,
       data.xp,
-      data.letters
+      data.animals
     );
 
     return exercise;
   }
 
   async update(em: EntityManager, exercise: Exercise, data: UpdateExerciseDTO): Promise<Exercise> {
-    if (!(exercise instanceof LetterExercise)) {
-      throw new Error('Exercise is not a letter exercise');
+    if (!(exercise instanceof AnimalExercise)) {
+      throw new Error('Exercise is not an animal exercise');
     }
 
-    if (data.exerciseType === 'letter' && data.letters) {
-      exercise.letters = data.letters.map(letter => new Letter(letter));
+    if (data.exerciseType === 'animal' && data.animals) {
+      exercise.animals = data.animals.map((animal: string) => new Animal(animal));
     }
 
     return exercise;
   }
 
   async validateAnswer(em: EntityManager, exercise: Exercise, answer: ExerciseAnswerDTO): Promise<ExerciseValidationResponse> {
-    if (!(exercise instanceof LetterExercise)) {
-      throw new Error('Exercise is not a letter exercise');
+    if (!(exercise instanceof AnimalExercise)) {
+      throw new Error('Exercise is not an animal exercise');
     }
 
-    if (answer.exerciseType !== 'letter') {
-      throw new Error('Answer is not for a letter exercise');
+    if (answer.exerciseType !== 'animal') {
+      throw new Error('Answer is not for an animal exercise');
     }
 
     const child = await em.findOne(ChildUser, answer.childId);
@@ -61,31 +61,31 @@ export class LetterExerciseService implements IExerciseTypeService {
       throw new NotFoundError('Child user not found');
     }
     
-    if (answer.letterIndex < 0 || answer.letterIndex >= exercise.letters.length) {
+    if (answer.animalIndex < 0 || answer.animalIndex >= exercise.animals.length) {
       return {
         correct: false,
         expectedAnswer: 'N/A',
-        feedback: 'Invalid letter position',
+        feedback: 'Invalid animal index',
         gainedXp: 0
       };
     }
 
-    const expectedLetter = exercise.letters[answer.letterIndex].letter;
-    const isCorrect = answer.answer.toUpperCase() === expectedLetter.toUpperCase();
+    const expectedAnimal = exercise.animals[answer.animalIndex].animal;
+    const isCorrect = answer.answer.toLowerCase() === expectedAnimal.toLowerCase();
     const feedback = isCorrect 
-      ? `Correct! The letter at position ${answer.letterIndex + 1} is ${expectedLetter}` 
-      : `Try again! The letter at position ${answer.letterIndex + 1} should be ${expectedLetter}`;
+      ? `Correct! This animal is a ${expectedAnimal}` 
+      : `Try again! This animal is a ${expectedAnimal}`;
     
     let gainedXp = 0;
     if (isCorrect) {
-      gainedXp = exercise.xp / exercise.letters.length;
+      gainedXp = Math.round((exercise.xp / exercise.animals.length) * 100) / 100;
       child.xp += gainedXp;
       await em.flush();
     }
     
     return {
       correct: isCorrect,
-      expectedAnswer: expectedLetter,
+      expectedAnswer: expectedAnimal,
       feedback,
       gainedXp
     };

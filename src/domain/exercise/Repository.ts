@@ -2,6 +2,9 @@ import { FilterQuery, FindOptions, QueryOrder, wrap } from '@mikro-orm/core';
 import { NotFoundError } from '../../exceptions/LexoError.js';
 import { Exercise, ExerciseDifficulty } from './Entity.js';
 import { LetterExercise, Letter } from './letterExercise/Entity.js';
+import { AnimalExercise, Animal } from './animalExercise/Entity.js';
+import { NumberExercise, Number } from './numberExercise/Entity.js';
+import { ColorExercise, ColorChallenge } from './colorExercise/Entity.js';
 import orm from '../../db/orm.js';
 import { AgeRange } from './ageRange/Entity.js';
 import { User } from '../user/Entity.js';
@@ -41,9 +44,15 @@ class ExerciseRepository {
       exercise = await em.findOne(LetterExercise, id);
       
       // Add other exercise types here when they exist
-      // if (!exercise) {
-      //   exercise = await em.findOne(NumberExercise, id);
-      // }
+      if (!exercise) {
+        exercise = await em.findOne(AnimalExercise, id);
+      }
+      if (!exercise) {
+        exercise = await em.findOne(NumberExercise, id);
+      }
+      if (!exercise) {
+        exercise = await em.findOne(ColorExercise, id);
+      }
 
       if (!exercise) {
         throw new NotFoundError('Exercise not found');
@@ -53,15 +62,23 @@ class ExerciseRepository {
         const service = exerciseServiceRegistry.getServiceForType(data.exerciseType);
         await service.update(em, exercise, data);
       } else {
-        for (const exType of ['letter']) {
-          try {
-            const service = exerciseServiceRegistry.getServiceForType(exType);
-            await service.update(em, exercise, { ...data, exerciseType: exType as any });
-            break;
-          } catch (e) {
-            // Continue to next type
-          }
+        // If no exerciseType is provided, try to determine it from the exercise instance
+        let exerciseType: string;
+        if (exercise instanceof LetterExercise) {
+          exerciseType = 'letter';
+        } else if (exercise instanceof AnimalExercise) {
+          exerciseType = 'animal';
+        } else if (exercise instanceof NumberExercise) {
+          exerciseType = 'number';
+        } else if (exercise instanceof ColorExercise) {
+          exerciseType = 'color';
+        } else {
+          throw new Error('Unknown exercise type');
         }
+        
+        const service = exerciseServiceRegistry.getServiceForType(exerciseType);
+        const dataWithType = Object.assign({}, data, { exerciseType });
+        await service.update(em, exercise, dataWithType as any);
       }
 
       // Update age range if provided
@@ -70,15 +87,21 @@ class ExerciseRepository {
           data.ageRange.min,
           data.ageRange.max
         );
-        delete data.ageRange;
       }
 
       // Update general properties that apply to all exercise types
-      const commonProps = { ...data };
-      delete commonProps.exerciseType;
-      delete commonProps.letters;
+      const commonProps: any = {};
+      
+      // Copy common properties, excluding exercise-specific ones
+      if (data.title !== undefined) commonProps.title = data.title;
+      if (data.description !== undefined) commonProps.description = data.description;
+      if (data.durationMinutes !== undefined) commonProps.durationMinutes = data.durationMinutes;
+      if (data.mainColor !== undefined) commonProps.mainColor = data.mainColor;
+      if (data.thumbnailUrl !== undefined) commonProps.thumbnailUrl = data.thumbnailUrl;
+      if (data.xp !== undefined) commonProps.xp = data.xp;
+      if (data.difficulty !== undefined) commonProps.difficulty = data.difficulty;
 
-      wrap(exercise).assign(commonProps as any);
+      wrap(exercise).assign(commonProps);
       await em.flush();
 
       return exercise;
@@ -98,9 +121,15 @@ class ExerciseRepository {
     exercise = await em.findOne(LetterExercise, id);
     
     // Add other exercise types here when they exist
-    // if (!exercise) {
-    //   exercise = await em.findOne(NumberExercise, id);
-    // }
+    if (!exercise) {
+      exercise = await em.findOne(AnimalExercise, id);
+    }
+    if (!exercise) {
+      exercise = await em.findOne(NumberExercise, id);
+    }
+    if (!exercise) {
+      exercise = await em.findOne(ColorExercise, id);
+    }
 
     if (!exercise) {
       throw new NotFoundError('Exercise not found');
@@ -130,12 +159,50 @@ class ExerciseRepository {
     }
 
     // Add other exercise types here when they exist
-    // try {
-    //   const numberExercise = await em.findOne(NumberExercise, id);
-    //   if (numberExercise) return numberExercise;
-    // } catch (error) {
-    //   // Continue to next type
-    // }
+    try {
+      const animalExercise = await em.findOne(AnimalExercise, id);
+      if (animalExercise) {
+        // Transform animals to ensure they have their methods
+        if (animalExercise.animals) {
+          animalExercise.animals = animalExercise.animals.map((animalData: any) => 
+            animalData instanceof Animal ? animalData : new Animal(animalData.animal)
+          );
+        }
+        return animalExercise;
+      }
+    } catch (error) {
+      // Continue to next type
+    }
+    
+    try {
+      const numberExercise = await em.findOne(NumberExercise, id);
+      if (numberExercise) {
+        // Transform numbers to ensure they have their methods
+        if (numberExercise.numbers) {
+          numberExercise.numbers = numberExercise.numbers.map((numberData: any) => 
+            numberData instanceof Number ? numberData : new Number(numberData.number, numberExercise.imageType)
+          );
+        }
+        return numberExercise;
+      }
+    } catch (error) {
+      // Continue to next type
+    }
+
+    try {
+      const colorExercise = await em.findOne(ColorExercise, id);
+      if (colorExercise) {
+        // Transform color challenges to ensure they have their methods
+        if (colorExercise.colorChallenges) {
+          colorExercise.colorChallenges = colorExercise.colorChallenges.map((challengeData: any) => 
+            challengeData instanceof ColorChallenge ? challengeData : new ColorChallenge(challengeData.fruit, challengeData.correctColor, challengeData.wrongColors)
+          );
+        }
+        return colorExercise;
+      }
+    } catch (error) {
+      // Continue to next type
+    }
 
     throw new NotFoundError('Exercise not found');
   }
@@ -159,8 +226,41 @@ class ExerciseRepository {
     });
 
     // Add other exercise types here when they exist
-    // const numberExercises = await em.find(NumberExercise, { user: userId });
-    // exercises.push(...numberExercises);
+    // Get animal exercises
+    const animalExercises = await em.find(AnimalExercise, { user: userId });
+    animalExercises.forEach(exercise => {
+      // Transform animals to ensure they have their methods
+      if (exercise.animals) {
+        exercise.animals = exercise.animals.map((animalData: any) => 
+          animalData instanceof Animal ? animalData : new Animal(animalData.animal)
+        );
+      }
+      exercises.push(exercise);
+    });
+    
+    // Get number exercises
+    const numberExercises = await em.find(NumberExercise, { user: userId });
+    numberExercises.forEach(exercise => {
+      // Transform numbers to ensure they have their methods
+      if (exercise.numbers) {
+        exercise.numbers = exercise.numbers.map((numberData: any) => 
+          numberData instanceof Number ? numberData : new Number(numberData.number, exercise.imageType)
+        );
+      }
+      exercises.push(exercise);
+    });
+
+    // Get color exercises  
+    const colorExercises = await em.find(ColorExercise, { user: userId });
+    colorExercises.forEach(exercise => {
+      // Transform color challenges to ensure they have their methods
+      if (exercise.colorChallenges) {
+        exercise.colorChallenges = exercise.colorChallenges.map((challengeData: any) => 
+          challengeData instanceof ColorChallenge ? challengeData : new ColorChallenge(challengeData.fruit, challengeData.correctColor, challengeData.wrongColors)
+        );
+      }
+      exercises.push(exercise);
+    });
 
     return exercises;
   }
@@ -186,7 +286,25 @@ class ExerciseRepository {
       return whereOptions;
     };
 
-    const queryOptions: FindOptions<LetterExercise> = {
+    const letterQueryOptions: FindOptions<LetterExercise> = {
+      limit: filters.limit,
+      offset: filters.offset,
+      orderBy: { id: QueryOrder.DESC }
+    };
+
+    const animalQueryOptions: FindOptions<AnimalExercise> = {
+      limit: filters.limit,
+      offset: filters.offset,
+      orderBy: { id: QueryOrder.DESC }
+    };
+
+    const numberQueryOptions: FindOptions<NumberExercise> = {
+      limit: filters.limit,
+      offset: filters.offset,
+      orderBy: { id: QueryOrder.DESC }
+    };
+
+    const colorQueryOptions: FindOptions<ColorExercise> = {
       limit: filters.limit,
       offset: filters.offset,
       orderBy: { id: QueryOrder.DESC }
@@ -195,7 +313,7 @@ class ExerciseRepository {
     const [letterExercises, letterTotal] = await em.findAndCount(
       LetterExercise, 
       buildWhereOptions(),
-      queryOptions
+      letterQueryOptions
     );
 
     // Transform letter exercises to ensure letters have their get imageUrl() methods
@@ -208,17 +326,61 @@ class ExerciseRepository {
       return exercise;
     });
 
-    // const [numberExercises, numberTotal] = await em.findAndCount(
-    //   NumberExercise, 
-    //   buildWhereOptions(), 
-    //   queryOptions
-    // );
+    const [animalExercises, animalTotal] = await em.findAndCount(
+      AnimalExercise, 
+      buildWhereOptions(),
+      animalQueryOptions
+    );
 
-    const totalExercises = letterTotal; // + numberTotal + ...
+    // Transform animal exercises to ensure animals have their get imageUrl() methods
+    const transformedAnimalExercises = animalExercises.map(exercise => {
+      if (exercise.animals) {
+        exercise.animals = exercise.animals.map((animalData: any) => 
+          animalData instanceof Animal ? animalData : new Animal(animalData.animal)
+        );
+      }
+      return exercise;
+    });
+
+    const [numberExercises, numberTotal] = await em.findAndCount(
+      NumberExercise, 
+      buildWhereOptions(),
+      numberQueryOptions
+    );
+
+    // Transform number exercises to ensure numbers have their get imageUrl() methods
+    const transformedNumberExercises = numberExercises.map(exercise => {
+      if (exercise.numbers) {
+        exercise.numbers = exercise.numbers.map((numberData: any) => 
+          numberData instanceof Number ? numberData : new Number(numberData.number, exercise.imageType)
+        );
+      }
+      return exercise;
+    });
+
+    const [colorExercises, colorTotal] = await em.findAndCount(
+      ColorExercise, 
+      buildWhereOptions(),
+      colorQueryOptions
+    );
+
+    // Transform color exercises to ensure color challenges have their get imageUrl() methods
+    const transformedColorExercises = colorExercises.map(exercise => {
+      if (exercise.colorChallenges) {
+        exercise.colorChallenges = exercise.colorChallenges.map((challengeData: any) => 
+          challengeData instanceof ColorChallenge ? challengeData : new ColorChallenge(challengeData.fruit, challengeData.correctColor, challengeData.wrongColors)
+        );
+      }
+      return exercise;
+    });
+
+    const totalExercises = letterTotal + animalTotal + numberTotal + colorTotal;
 
     const exercises = {
       letter: transformedLetterExercises,
-      // number: numberExercises,
+      animal: transformedAnimalExercises,
+      number: transformedNumberExercises,
+      color: transformedColorExercises,
     };
 
     return { 
@@ -239,9 +401,15 @@ class ExerciseRepository {
       exercise = await em.findOne(LetterExercise, answerData.exerciseId);
       
       // Add other exercise types here when they exist
-      // if (!exercise) {
-      //   exercise = await em.findOne(NumberExercise, answerData.exerciseId);
-      // }
+      if (!exercise) {
+        exercise = await em.findOne(AnimalExercise, answerData.exerciseId);
+      }
+      if (!exercise) {
+        exercise = await em.findOne(NumberExercise, answerData.exerciseId);
+      }
+      if (!exercise) {
+        exercise = await em.findOne(ColorExercise, answerData.exerciseId);
+      }
 
       if (!exercise) {
         throw new NotFoundError('Exercise not found');
