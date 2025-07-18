@@ -16,6 +16,8 @@ import cors from 'cors';
 import { exerciseServiceRegistry } from './domain/exercise/services/ExerciseServiceRegistry.js';
 import { LetterExerciseService } from './domain/exercise/letterExercise/Service.js';
 import { AnimalExerciseService } from './domain/exercise/animalExercise/Service.js';
+import { NumberExerciseService } from './domain/exercise/numberExercise/Service.js';
+import { ColorExerciseService } from './domain/exercise/colorExercise/Service.js';
 
 console.log('📀 Server starting');
 const app = express();
@@ -29,6 +31,8 @@ try {
   // Register exercise services
   exerciseServiceRegistry.registerService(new LetterExerciseService());
   exerciseServiceRegistry.registerService(new AnimalExerciseService());
+  exerciseServiceRegistry.registerService(new NumberExerciseService());
+  exerciseServiceRegistry.registerService(new ColorExerciseService());
   console.log('✅ Exercise services registered');
 } catch (error) {
   console.error(`Error during MikroORM initialization:\n`, error);

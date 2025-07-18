@@ -763,6 +763,151 @@
 					"response": []
 				},
 				{
+					"name": "Create Number Exercise (Regular)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.data && responseJson.data.id) {",
+									"        pm.collectionVariables.set('numberExerciseId', responseJson.data.id);",
+									"        console.log('Number Exercise ID saved:', responseJson.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseType\": \"number\",\n  \"title\": \"Number Recognition {{randomId}}\",\n  \"description\": \"Learn to identify different numbers\",\n  \"durationMinutes\": 10,\n  \"mainColor\": \"#007bff\",\n  \"thumbnailUrl\": \"https://example.com/numbers-thumbnail.png\",\n  \"difficulty\": \"easy\",\n  \"xp\": 150,\n  \"ageRange\": {\n    \"min\": 2,\n    \"max\": 6\n  },\n  \"numbers\": [0, 1, 2, 3, 4],\n  \"imageType\": \"regular\",\n  \"availableToChildren\": [\"{{childId}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Number Exercise (Hand Numbers)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseType\": \"number\",\n  \"title\": \"Hand Numbers Recognition {{randomId}}\",\n  \"description\": \"Learn to count with hands and identify numbers\",\n  \"durationMinutes\": 15,\n  \"mainColor\": \"#6f42c1\",\n  \"thumbnailUrl\": \"https://example.com/hand-numbers-thumbnail.png\",\n  \"difficulty\": \"medium\",\n  \"xp\": 250,\n  \"ageRange\": {\n    \"min\": 3,\n    \"max\": 8\n  },\n  \"numbers\": [5, 6, 7, 8, 9, 10],\n  \"imageType\": \"hand\",\n  \"availableToChildren\": [\"{{childId}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Color Exercise",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Color exercise created successfully', function () {",
+									"    pm.response.to.have.status(201);",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.data).to.have.property('id');",
+									"    pm.expect(responseJson.data.exerciseType).to.eql('color');",
+									"    if (responseJson.data && responseJson.data.id) {",
+									"        pm.collectionVariables.set('colorExerciseId', responseJson.data.id);",
+									"        console.log('Color Exercise ID saved:', responseJson.data.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseType\": \"color\",\n  \"title\": \"Color Recognition {{randomId}}\",\n  \"description\": \"Learn to identify different colors through fruits\",\n  \"durationMinutes\": 8,\n  \"mainColor\": \"#ff6b35\",\n  \"thumbnailUrl\": \"https://example.com/colors-thumbnail.png\",\n  \"difficulty\": \"easy\",\n  \"xp\": 120,\n  \"ageRange\": {\n    \"min\": 2,\n    \"max\": 5\n  },\n  \"colorChallenges\": [\n    {\n      \"fruit\": \"apple\",\n      \"correctColor\": \"green\",\n      \"wrongColors\": [\"red\", \"yellow\"]\n    },\n    {\n      \"fruit\": \"banana\",\n      \"correctColor\": \"yellow\",\n      \"wrongColors\": [\"green\", \"orange\"]\n    },\n    {\n      \"fruit\": \"orange\",\n      \"correctColor\": \"orange\",\n      \"wrongColors\": [\"red\", \"yellow\"]\n    }\n  ],\n  \"availableToChildren\": [\"{{childId}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Exercise by ID",
 					"request": {
 						"method": "GET",
@@ -1027,6 +1172,114 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"exerciseId\": \"{{animalExerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"animal\",\n  \"answer\": \"ELEPHANT\",\n  \"animalIndex\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Number Answer - Correct",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{numberExerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"number\",\n  \"answer\": 2,\n  \"numberIndex\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Number Answer - Incorrect",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{numberExerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"number\",\n  \"answer\": 9,\n  \"numberIndex\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Color Answer - Correct",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{colorExerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"color\",\n  \"answer\": \"green\",\n  \"challengeIndex\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/exercises/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"exercises",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Color Answer - Incorrect",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exerciseId\": \"{{colorExerciseId}}\",\n  \"childId\": \"{{childId}}\",\n  \"exerciseType\": \"color\",\n  \"answer\": \"red\",\n  \"challengeIndex\": 0\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/exercises/validate",
@@ -1472,6 +1725,16 @@
 		},
 		{
 			"key": "animalExerciseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "numberExerciseId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "colorExerciseId",
 			"value": "",
 			"type": "string"
 		},

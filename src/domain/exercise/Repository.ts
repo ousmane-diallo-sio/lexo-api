@@ -3,6 +3,8 @@ import { NotFoundError } from '../../exceptions/LexoError.js';
 import { Exercise, ExerciseDifficulty } from './Entity.js';
 import { LetterExercise, Letter } from './letterExercise/Entity.js';
 import { AnimalExercise, Animal } from './animalExercise/Entity.js';
+import { NumberExercise, Number } from './numberExercise/Entity.js';
+import { ColorExercise, ColorChallenge } from './colorExercise/Entity.js';
 import orm from '../../db/orm.js';
 import { AgeRange } from './ageRange/Entity.js';
 import { User } from '../user/Entity.js';
@@ -45,9 +47,12 @@ class ExerciseRepository {
       if (!exercise) {
         exercise = await em.findOne(AnimalExercise, id);
       }
-      // if (!exercise) {
-      //   exercise = await em.findOne(NumberExercise, id);
-      // }
+      if (!exercise) {
+        exercise = await em.findOne(NumberExercise, id);
+      }
+      if (!exercise) {
+        exercise = await em.findOne(ColorExercise, id);
+      }
 
       if (!exercise) {
         throw new NotFoundError('Exercise not found');
@@ -63,6 +68,10 @@ class ExerciseRepository {
           exerciseType = 'letter';
         } else if (exercise instanceof AnimalExercise) {
           exerciseType = 'animal';
+        } else if (exercise instanceof NumberExercise) {
+          exerciseType = 'number';
+        } else if (exercise instanceof ColorExercise) {
+          exerciseType = 'color';
         } else {
           throw new Error('Unknown exercise type');
         }
@@ -115,9 +124,12 @@ class ExerciseRepository {
     if (!exercise) {
       exercise = await em.findOne(AnimalExercise, id);
     }
-    // if (!exercise) {
-    //   exercise = await em.findOne(NumberExercise, id);
-    // }
+    if (!exercise) {
+      exercise = await em.findOne(NumberExercise, id);
+    }
+    if (!exercise) {
+      exercise = await em.findOne(ColorExercise, id);
+    }
 
     if (!exercise) {
       throw new NotFoundError('Exercise not found');
@@ -161,12 +173,36 @@ class ExerciseRepository {
     } catch (error) {
       // Continue to next type
     }
-    // try {
-    //   const numberExercise = await em.findOne(NumberExercise, id);
-    //   if (numberExercise) return numberExercise;
-    // } catch (error) {
-    //   // Continue to next type
-    // }
+    
+    try {
+      const numberExercise = await em.findOne(NumberExercise, id);
+      if (numberExercise) {
+        // Transform numbers to ensure they have their methods
+        if (numberExercise.numbers) {
+          numberExercise.numbers = numberExercise.numbers.map((numberData: any) => 
+            numberData instanceof Number ? numberData : new Number(numberData.number, numberExercise.imageType)
+          );
+        }
+        return numberExercise;
+      }
+    } catch (error) {
+      // Continue to next type
+    }
+
+    try {
+      const colorExercise = await em.findOne(ColorExercise, id);
+      if (colorExercise) {
+        // Transform color challenges to ensure they have their methods
+        if (colorExercise.colorChallenges) {
+          colorExercise.colorChallenges = colorExercise.colorChallenges.map((challengeData: any) => 
+            challengeData instanceof ColorChallenge ? challengeData : new ColorChallenge(challengeData.fruit, challengeData.correctColor, challengeData.wrongColors)
+          );
+        }
+        return colorExercise;
+      }
+    } catch (error) {
+      // Continue to next type
+    }
 
     throw new NotFoundError('Exercise not found');
   }
@@ -202,8 +238,29 @@ class ExerciseRepository {
       exercises.push(exercise);
     });
     
-    // const numberExercises = await em.find(NumberExercise, { user: userId });
-    // exercises.push(...numberExercises);
+    // Get number exercises
+    const numberExercises = await em.find(NumberExercise, { user: userId });
+    numberExercises.forEach(exercise => {
+      // Transform numbers to ensure they have their methods
+      if (exercise.numbers) {
+        exercise.numbers = exercise.numbers.map((numberData: any) => 
+          numberData instanceof Number ? numberData : new Number(numberData.number, exercise.imageType)
+        );
+      }
+      exercises.push(exercise);
+    });
+
+    // Get color exercises  
+    const colorExercises = await em.find(ColorExercise, { user: userId });
+    colorExercises.forEach(exercise => {
+      // Transform color challenges to ensure they have their methods
+      if (exercise.colorChallenges) {
+        exercise.colorChallenges = exercise.colorChallenges.map((challengeData: any) => 
+          challengeData instanceof ColorChallenge ? challengeData : new ColorChallenge(challengeData.fruit, challengeData.correctColor, challengeData.wrongColors)
+        );
+      }
+      exercises.push(exercise);
+    });
 
     return exercises;
   }
@@ -241,6 +298,18 @@ class ExerciseRepository {
       orderBy: { id: QueryOrder.DESC }
     };
 
+    const numberQueryOptions: FindOptions<NumberExercise> = {
+      limit: filters.limit,
+      offset: filters.offset,
+      orderBy: { id: QueryOrder.DESC }
+    };
+
+    const colorQueryOptions: FindOptions<ColorExercise> = {
+      limit: filters.limit,
+      offset: filters.offset,
+      orderBy: { id: QueryOrder.DESC }
+    };
+
     const [letterExercises, letterTotal] = await em.findAndCount(
       LetterExercise, 
       buildWhereOptions(),
@@ -273,18 +342,45 @@ class ExerciseRepository {
       return exercise;
     });
 
-    // const [numberExercises, numberTotal] = await em.findAndCount(
-    //   NumberExercise, 
-    //   buildWhereOptions(), 
-    //   queryOptions
-    // );
+    const [numberExercises, numberTotal] = await em.findAndCount(
+      NumberExercise, 
+      buildWhereOptions(),
+      numberQueryOptions
+    );
 
-    const totalExercises = letterTotal + animalTotal; // + numberTotal + ...
+    // Transform number exercises to ensure numbers have their get imageUrl() methods
+    const transformedNumberExercises = numberExercises.map(exercise => {
+      if (exercise.numbers) {
+        exercise.numbers = exercise.numbers.map((numberData: any) => 
+          numberData instanceof Number ? numberData : new Number(numberData.number, exercise.imageType)
+        );
+      }
+      return exercise;
+    });
+
+    const [colorExercises, colorTotal] = await em.findAndCount(
+      ColorExercise, 
+      buildWhereOptions(),
+      colorQueryOptions
+    );
+
+    // Transform color exercises to ensure color challenges have their get imageUrl() methods
+    const transformedColorExercises = colorExercises.map(exercise => {
+      if (exercise.colorChallenges) {
+        exercise.colorChallenges = exercise.colorChallenges.map((challengeData: any) => 
+          challengeData instanceof ColorChallenge ? challengeData : new ColorChallenge(challengeData.fruit, challengeData.correctColor, challengeData.wrongColors)
+        );
+      }
+      return exercise;
+    });
+
+    const totalExercises = letterTotal + animalTotal + numberTotal + colorTotal;
 
     const exercises = {
       letter: transformedLetterExercises,
       animal: transformedAnimalExercises,
-      // number: numberExercises,
+      number: transformedNumberExercises,
+      color: transformedColorExercises,
     };
 
     return { 
@@ -308,9 +404,12 @@ class ExerciseRepository {
       if (!exercise) {
         exercise = await em.findOne(AnimalExercise, answerData.exerciseId);
       }
-      // if (!exercise) {
-      //   exercise = await em.findOne(NumberExercise, answerData.exerciseId);
-      // }
+      if (!exercise) {
+        exercise = await em.findOne(NumberExercise, answerData.exerciseId);
+      }
+      if (!exercise) {
+        exercise = await em.findOne(ColorExercise, answerData.exerciseId);
+      }
 
       if (!exercise) {
         throw new NotFoundError('Exercise not found');
