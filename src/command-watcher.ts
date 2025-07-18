@@ -98,7 +98,6 @@ async function processQueue() {
       executedCommands.add(commandLine);
 
       if (executedCommands.size > 100) {
-        // Keep last 50
         const executedArray = Array.from(executedCommands);
         executedCommands.clear();
         for (const c of executedArray.slice(-50)) executedCommands.add(c);

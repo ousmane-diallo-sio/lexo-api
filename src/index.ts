@@ -28,7 +28,6 @@ try {
   orm.set(mikroORM);
   console.log('✅ MikroORM initialized');
   
-  // Register exercise services
   exerciseServiceRegistry.registerService(new LetterExerciseService());
   exerciseServiceRegistry.registerService(new AnimalExerciseService());
   exerciseServiceRegistry.registerService(new NumberExerciseService());

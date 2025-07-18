@@ -17,8 +17,6 @@ const mikroORMConfig: Options = defineConfig({
   namingStrategy: UnderscoreNamingStrategy,
   loadStrategy: LoadStrategy.JOINED,
   ignoreUndefinedInQuery: true,
-  // logger: (message: string) => myLogger.info(message), // defaults to `console.log()`
-  // folder-based discovery setup, using common filename suffix
   discovery: {
     warnWhenNoEntities: true,
     alwaysAnalyseProperties: true,
@@ -28,8 +26,8 @@ const mikroORMConfig: Options = defineConfig({
   // check the documentation for their differences: https://mikro-orm.io/docs/metadata-providers
   metadataProvider: TsMorphMetadataProvider,
   metadataCache: { enabled: true },
-  debug: process.env.NODE_ENV !== 'production',   // enable debug mode to log SQL queries and discovery information
-  forceUtcTimezone: true,   // ensure that all dates are stored in UTC timezone,
+  debug: process.env.NODE_ENV !== 'production',
+  forceUtcTimezone: true,
   entities: [User, BaseEntity, BaseEntityWithUUID],
   entitiesTs: ['./src/**/Entity.ts'],
   dynamicImportProvider: async (id) => {

@@ -1,7 +1,6 @@
 import { BaseEntity, Check, Embeddable, Entity, Property } from '@mikro-orm/core';
 
 @Embeddable()
-// min must be less than max
 @Check({ expression: 'min < max' })
 export class AgeRange extends BaseEntity {
 

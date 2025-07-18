@@ -22,7 +22,6 @@ import {
   FilterQuerySchema
 } from "./ZodSchema.js";
 
-// Re-export types from ZodSchema for backward compatibility
 export type BaseExerciseDTO = z.infer<typeof BaseExerciseSchema>;
 export type CreateLetterExerciseDTO = z.infer<typeof CreateLetterExerciseSchema>;
 export type CreateAnimalExerciseDTO = z.infer<typeof CreateAnimalExerciseSchema>;

@@ -59,7 +59,6 @@ export class ColorExerciseService implements IExerciseTypeService {
         );
       }
 
-      // Update other properties
       if (data.title !== undefined) exercise.title = data.title;
       if (data.description !== undefined) exercise.description = data.description;
       if (data.durationMinutes !== undefined) exercise.durationMinutes = data.durationMinutes;

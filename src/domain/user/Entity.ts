@@ -2,7 +2,7 @@ import { BeforeCreate, BeforeUpdate, BeforeUpsert, Cascade, Collection, Entity, 
 import jwt from "jsonwebtoken";
 import EnvConfig from '../../lib/config/EnvConfig.js';
 import crypto from "crypto";
-import type { CreateUserGoogleDTO, CreateUserDTO, CreateAdminUserDTO, CreateChildUserDTO } from './index.d.ts';
+import type { CreateUserGoogleDTO, CreateUserDTO, CreateAdminUserDTO } from './index.d.ts';
 import { BaseEntityWithUUID } from '../../db/BaseEntityWithUUID.js';
 import { ChildUser } from './childUser/Entity.js';
 
@@ -92,8 +92,29 @@ export class User extends BaseEntityWithUUID {
   verifyPassword(password: string) {
     if (!this.salt) return false;
     const _hash = crypto.pbkdf2Sync(password, this.salt, 1000, 64, 'sha512').toString('hex');
-    console.debug('Verifying password:', { _hash, password, salt: this.salt });
     return _hash === this.password;
   }
 
+}
+
+@Entity()
+export class ChildUser extends BaseEntityWithUUID {
+
+  @Property()
+  firstName!: string;
+
+  @Property()
+  username!: string;
+
+  @Property()
+  birthdate!: Date;
+
+  @Property()
+  avatarUrl?: string;
+
+  @Property()
+  xp: number = 0;
+
+  @ManyToOne()
+  parent!: Rel<User>;
 }

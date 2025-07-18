@@ -121,7 +121,6 @@ const login: RequestHandler = async (req, res) => {
       });
     }
 
-    console.debug("user", user);
     if (!user.verifyPassword(validation.data.password)) {
       return formatResponse(res, {
         status: 401,

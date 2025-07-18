@@ -55,38 +55,34 @@ export const CreateColorExerciseSchema = BaseExerciseSchema.extend({
   })).min(1, { message: "At least one color challenge is required" })
 });
 
-// Union type for all exercise types
 export const CreateExerciseSchema = z.discriminatedUnion('exerciseType', [
   CreateLetterExerciseSchema,
   CreateAnimalExerciseSchema,
   CreateNumberExerciseSchema,
   CreateColorExerciseSchema,
-  // Add other exercise types here as they are implemented
 ]);
 
 export const UpdateLetterExerciseSchema = CreateLetterExerciseSchema.partial().extend({
-  exerciseType: z.literal('letter'), // Keep exerciseType required for discriminated union
+  exerciseType: z.literal('letter'),
 });
 
 export const UpdateAnimalExerciseSchema = CreateAnimalExerciseSchema.partial().extend({
-  exerciseType: z.literal('animal'), // Keep exerciseType required for discriminated union
+  exerciseType: z.literal('animal'),
 });
 
 export const UpdateNumberExerciseSchema = CreateNumberExerciseSchema.partial().extend({
-  exerciseType: z.literal('number'), // Keep exerciseType required for discriminated union
+  exerciseType: z.literal('number'),
 });
 
 export const UpdateColorExerciseSchema = CreateColorExerciseSchema.partial().extend({
-  exerciseType: z.literal('color'), // Keep exerciseType required for discriminated union
+  exerciseType: z.literal('color'),
 });
 
-// Update schema using discriminated union
 export const UpdateExerciseSchema = z.discriminatedUnion('exerciseType', [
   UpdateLetterExerciseSchema,
   UpdateAnimalExerciseSchema,
   UpdateNumberExerciseSchema,
   UpdateColorExerciseSchema,
-  // Add other exercise types here as they are implemented
 ]);
 
 // Base answer schema
@@ -129,7 +125,6 @@ export const ExerciseAnswerSchema = z.discriminatedUnion('exerciseType', [
   AnimalExerciseAnswerSchema,
   NumberExerciseAnswerSchema,
   ColorExerciseAnswerSchema,
-  // Add other exercise answer types here as they are implemented
 ]);
 
 // Exercise validation response schema
