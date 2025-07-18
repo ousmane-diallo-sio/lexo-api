@@ -26,6 +26,15 @@ const getAll: RequestHandler = async (req, res) => {
   const userId = req.auth!.id;
   
   try {
+    const isAdmin = await orm.getEmFork().findOne(User, { id: userId, isAdmin: true });
+    if (isAdmin) {
+      const children = await userChildRepository.findAll();
+      return formatResponse(res, { 
+        status: 200, 
+        data: children 
+      });
+    }
+
     const children = await userChildRepository.findByParentId(userId);
     return formatResponse(res, { 
       status: 200, 
